@@ -94,6 +94,11 @@ def main() -> None:
             i for i in valid_items
             if i.source_tier != "tier_1" and i.citation_count == 0
         ]
+        # If no tier_2 content (Substacks + Exa quiet), fall back to all valid items
+        # so Claude always has material to work with
+        if not theme_candidates:
+            theme_candidates = [i for i in valid_items if i.citation_count == 0]
+
         scored_items = score_and_rank(theme_candidates, active_positions)
 
         # Haiku prefilter: approve/reject from top scored items, always deliver 3

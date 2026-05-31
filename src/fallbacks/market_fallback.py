@@ -60,6 +60,6 @@ def get_market_fallback() -> MarketDashboard:
 
     return PlaceholderDashboard(
         as_of=date.today().isoformat(),
-        equities=[], rates=[], fx=[], commodities=[], crypto=[],
+        us_equities=[], eu_equities=[], rates=[], fx=[], commodities=[], crypto=[],
         spread_2s10s=0.0, spread_change_bp=0.0, raw={},
     )
