@@ -10,7 +10,7 @@ TELEGRAM_API = f"https://api.telegram.org/bot{cfg.TELEGRAM_BOT_TOKEN}"
 SEND_DELAY = 0.5  # seconds between messages
 
 
-def _send_message(text: str, chat_id: str = None) -> bool:
+def _send_message(text: str, chat_id: str = None) -> None:
     target = chat_id or cfg.TELEGRAM_CHAT_ID
     payload = {
         "chat_id": target,
@@ -19,10 +19,13 @@ def _send_message(text: str, chat_id: str = None) -> bool:
         "disable_web_page_preview": True,
     }
     resp = requests.post(f"{TELEGRAM_API}/sendMessage", json=payload, timeout=15)
-    return resp.ok
+    if not resp.ok:
+        raise RuntimeError(
+            f"Telegram sendMessage failed {resp.status_code}: {resp.text[:300]}"
+        )
 
 
-def _send_photo(image_bytes: bytes, caption: str, chat_id: str = None) -> bool:
+def _send_photo(image_bytes: bytes, caption: str, chat_id: str = None) -> None:
     target = chat_id or cfg.TELEGRAM_CHAT_ID
     resp = requests.post(
         f"{TELEGRAM_API}/sendPhoto",
@@ -30,21 +33,22 @@ def _send_photo(image_bytes: bytes, caption: str, chat_id: str = None) -> bool:
         files={"photo": ("chart.png", image_bytes, "image/png")},
         timeout=30,
     )
-    return resp.ok
+    if not resp.ok:
+        raise RuntimeError(
+            f"Telegram sendPhoto failed {resp.status_code}: {resp.text[:300]}"
+        )
 
 
-def send_module(title: str, content: str, chat_id: str = None) -> bool:
-    """Send a single module section. content is already formatted HTML."""
+def send_module(title: str, content: str, chat_id: str = None) -> None:
+    """Send a single module section. Raises RuntimeError on Telegram failure."""
     msg = f"<b>── {title} ──</b>\n\n{content}"
-    ok = _send_message(msg, chat_id)
+    _send_message(msg, chat_id)
     time.sleep(SEND_DELAY)
-    return ok
 
 
-def send_chart(image_bytes: bytes, caption: str, chat_id: str = None) -> bool:
-    ok = _send_photo(image_bytes, caption, chat_id)
+def send_chart(image_bytes: bytes, caption: str, chat_id: str = None) -> None:
+    _send_photo(image_bytes, caption, chat_id)
     time.sleep(SEND_DELAY)
-    return ok
 
 
 def format_module_2(items: list[dict]) -> str:
