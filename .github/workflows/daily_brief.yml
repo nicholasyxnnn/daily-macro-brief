@@ -2,7 +2,7 @@ name: Daily Macro Brief
 
 on:
   schedule:
-    - cron: '0 11 * * 1-5'  # 6am ET (11am UTC), weekdays only
+    - cron: '0 22 * * 0-4'  # 6am HKT (22:00 UTC prev day), weekdays HKT = Sun-Thu UTC
   workflow_dispatch:          # manual trigger for testing
 
 jobs:
