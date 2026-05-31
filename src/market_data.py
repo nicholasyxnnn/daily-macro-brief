@@ -96,6 +96,13 @@ class MarketDashboard:
                     f"{sign + f'{r.change:,.1f}':>10}"
                     f"{sign_p + f'{r.pct_change:.1f}%':>8}")
 
+        def fx_line(r: AssetRow) -> str:
+            sign = "+" if r.change >= 0 else ""
+            sign_p = "+" if (r.pct_change or 0) >= 0 else ""
+            return (f"{r.name:<14}{r.last:>10.4f}"
+                    f"{sign + f'{r.change:.4f}':>10}"
+                    f"{sign_p + f'{r.pct_change:.2f}%':>8}")
+
         def rate_line(r: AssetRow) -> str:
             sign = "+" if (r.bp_change or 0) >= 0 else ""
             return f"{r.name:<14}{r.last:>8.2f}%  {sign}{r.bp_change:.0f}bp"
@@ -110,7 +117,7 @@ class MarketDashboard:
 
         lines.append("G7 FX")
         for r in self.fx:
-            lines.append(eq_line(r))
+            lines.append(fx_line(r))
 
         lines.append("US RATES")
         for r in self.rates:
