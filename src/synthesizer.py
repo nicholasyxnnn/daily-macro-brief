@@ -4,12 +4,18 @@ Claude API integration.
 - Sonnet synthesis: single call for all modules, prompt-cached system prompt
 """
 from pathlib import Path
+import time
 import anthropic
 import config as cfg
 from prompts.schemas import OUTPUT_SCHEMA, parse_synthesis
 from src.content_scraper import ContentItem
 from src.market_data import MarketDashboard
 from src.calendar_scraper import CalendarData
+
+if not cfg.ANTHROPIC_API_KEY:
+    raise EnvironmentError(
+        "ANTHROPIC_API_KEY is not set. Add it as a GitHub secret or export it locally."
+    )
 
 CLAUDE_MD = (Path(__file__).parent.parent / "CLAUDE.md").read_text()
 
@@ -103,18 +109,26 @@ def synthesize(
         f"Never invent prices or rates."
     )
 
-    resp = client.messages.create(
-        model=SONNET_MODEL,
-        max_tokens=1200,
-        system=[
-            {
-                "type": "text",
-                "text": system_prompt,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[{"role": "user", "content": user_content}],
-    )
+    for attempt in range(2):
+        try:
+            resp = client.messages.create(
+                model=SONNET_MODEL,
+                max_tokens=1200,
+                system=[
+                    {
+                        "type": "text",
+                        "text": system_prompt,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+                messages=[{"role": "user", "content": user_content}],
+            )
+            break
+        except anthropic.APIConnectionError:
+            if attempt == 0:
+                time.sleep(10)
+                continue
+            raise
 
     raw_xml = resp.content[0].text
     return parse_synthesis(raw_xml)

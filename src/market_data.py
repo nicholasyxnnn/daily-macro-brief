@@ -41,14 +41,12 @@ CRYPTO_TICKERS = {
 VIX_TICKER = "^VIX"
 
 FRED_SERIES = {
-    "US 2Y":  "DGS2",
-    "US 10Y": "DGS10",
-    "US 30Y": "DGS30",
-}
-
-EU_RATE_TICKERS = {
-    "Bund 10Y": "^TMBMKDE-10Y",
-    "Gilt 10Y": "^TMBMKGB-10Y",
+    "US 2Y":   "DGS2",
+    "US 10Y":  "DGS10",
+    "US 30Y":  "DGS30",
+    # EU sovereign yields via FRED (1-day lag, but reliable)
+    "Bund 10Y": "IRLTLT01DEM156N",
+    "Gilt 10Y": "IRLTLT01GBM156N",
 }
 
 
@@ -162,24 +160,6 @@ def _fetch_fred_rates() -> tuple[list[AssetRow], dict]:
     return rate_rows, raw
 
 
-def _fetch_eu_rates() -> list[AssetRow]:
-    rows = []
-    for name, sym in EU_RATE_TICKERS.items():
-        try:
-            ticker = yf.Ticker(sym)
-            hist = ticker.history(period="5d")
-            series = hist["Close"].dropna()
-            if len(series) < 2:
-                continue
-            last = float(series.iloc[-1])
-            prev = float(series.iloc[-2])
-            bp_chg = (last - prev) * 100
-            rows.append(AssetRow(name=name, last=last, change=last - prev, bp_change=bp_chg, is_rate=True))
-        except Exception:
-            continue
-    return rows
-
-
 def fetch_market_data() -> MarketDashboard:
     equities = _fetch_yf_rows(EQUITY_TICKERS)
     fx = _fetch_yf_rows(FX_TICKERS)
@@ -187,8 +167,7 @@ def fetch_market_data() -> MarketDashboard:
     crypto = _fetch_yf_rows(CRYPTO_TICKERS)
 
     rate_rows, raw_rates = _fetch_fred_rates()
-    eu_rates = _fetch_eu_rates()
-    all_rates = rate_rows + eu_rates
+    all_rates = rate_rows
 
     # 2s10s spread
     y2 = raw_rates.get("US 2Y", 0.0)
