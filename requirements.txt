@@ -8,3 +8,4 @@ matplotlib>=3.8.0
 pyyaml>=6.0.1
 lxml>=5.0.0
 numpy>=1.26.0
+exa-py>=1.0.0

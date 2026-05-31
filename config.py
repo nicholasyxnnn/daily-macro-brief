@@ -9,7 +9,7 @@ TELEGRAM_BOT_TOKEN: str = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID: str = os.environ.get("TELEGRAM_CHAT_ID", "")
 TELEGRAM_ADMIN_CHAT_ID: str = os.environ.get("TELEGRAM_ADMIN_CHAT_ID", TELEGRAM_CHAT_ID)
 FRED_API_KEY: str = os.environ.get("FRED_API_KEY", "")
-NEWSAPI_KEY: str = os.environ.get("NEWSAPI_KEY", "")
+EXA_API_KEY: str = os.environ.get("EXA_API_KEY", "")
 
 
 def load_positions() -> dict:

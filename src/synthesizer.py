@@ -8,6 +8,7 @@ import time
 import anthropic
 import config as cfg
 from prompts.schemas import OUTPUT_SCHEMA, parse_synthesis
+from typing import Optional
 from src.content_scraper import ContentItem
 from src.market_data import MarketDashboard
 from src.calendar_scraper import CalendarData
@@ -59,6 +60,16 @@ def _format_positions(positions: dict) -> str:
     return "\n".join(lines)
 
 
+def _format_regime_context(items: list[ContentItem]) -> str:
+    """Central bank items formatted as regime background — not Theme Radar candidates."""
+    if not items:
+        return "No central bank publications in the last 48h."
+    parts = []
+    for item in items[:6]:
+        parts.append(f"- [{item.source_name}] {item.title}")
+    return "\n".join(parts)
+
+
 def _format_content_items(items: list[ContentItem]) -> str:
     parts = []
     for i, item in enumerate(items, 1):
@@ -88,6 +99,8 @@ def synthesize(
     content_items: list[ContentItem],
     positions: dict,
     chart_asset: str,
+    regime_items: list[ContentItem] = None,
+    citation_item: Optional[ContentItem] = None,
 ) -> dict:
     """
     Single Sonnet call generating modules 2, 4 caption, 5, and 6.
@@ -95,17 +108,40 @@ def synthesize(
     """
     system_prompt = _build_system_prompt(positions)
 
+    citation_block = ""
+    if citation_item:
+        citation_block = (
+            f"\n\n## Contrarian Corner — Citation-Validated Signal\n"
+            f"This piece was independently cited by {citation_item.citation_count} curated sources "
+            f"but has not reached mainstream coverage. Consider it as one input for Module 6.\n"
+            f"Title: {citation_item.title}\n"
+            f"Source: {citation_item.source_name} | URL: {citation_item.url}\n"
+            f"Excerpt: {citation_item.summary[:400]}"
+        )
+
     user_content = (
         f"## Market Data (pre-fetched, do not modify numbers)\n"
         f"{market_data.format_telegram()}\n\n"
         f"## Calendar\n"
         f"{calendar_data.format_telegram()}\n\n"
+        f"## Central Bank & Policy Backdrop (regime context — not for Theme Radar)\n"
+        f"{_format_regime_context(regime_items or [])}\n\n"
         f"## Chart Selected\n"
         f"Asset: {chart_asset} (rules-based selection, already determined)\n\n"
-        f"## Content Items for Theme Radar\n"
-        f"{_format_content_items(content_items)}\n\n"
+        f"## Non-Mainstream Content (Theme Radar candidates — Substacks + Exa discovery)\n"
+        f"{_format_content_items(content_items)}"
+        f"{citation_block}\n\n"
         f"## Task\n"
-        f"Produce the XML brief for modules 2, 4, 5, and 6.\n"
+        f"You are a macro analyst writing for a PM who already reads Bloomberg, FT, and WSJ.\n"
+        f"For every module — synthesize, select, explain:\n"
+        f"  Module 2: What actually changed overnight that moves the needle on this specific book? "
+        f"Draw connections across market data, calendar, and content. State the implication, not the event.\n"
+        f"  Module 4: What does this chart imply about the current macro regime and the PM's positioning?\n"
+        f"  Module 5: Which 3 content items carry genuine non-consensus signal relative to the book? "
+        f"Write the book implication from your own analytical read — not a paraphrase of the source.\n"
+        f"  Module 6: Identify a narrative the market is not pricing. If nothing is explicit in the "
+        f"content, derive it from the combination of overnight moves, calendar, and content themes. "
+        f"Never hedge. Never use 'some analysts say'. State a point of view.\n\n"
         f"Your entire response must be valid XML starting with <brief> and ending with </brief>.\n"
         f"Do not add any prose before or after the XML.\n"
         f"Numbers in module 2 must come from the market data above — never invent prices or rates."

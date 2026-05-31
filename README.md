@@ -56,7 +56,7 @@ pip install -r requirements.txt
 | `TELEGRAM_CHAT_ID` | [@userinfobot](https://t.me/userinfobot) on Telegram | Free |
 | `TELEGRAM_ADMIN_CHAT_ID` | Same as above (can be same as CHAT_ID) | Free |
 | `FRED_API_KEY` | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/api_key.html) | Free |
-| `NEWSAPI_KEY` | [newsapi.org](https://newsapi.org) | Free tier (optional — GDELT used if absent) |
+| `EXA_API_KEY` | [exa.ai](https://exa.ai) | Free tier (1000 req/month) — Layer 2 dynamic discovery |
 
 ### 3. Add secrets to GitHub
 

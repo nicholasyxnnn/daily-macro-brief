@@ -1,5 +1,6 @@
-# sources.yml — curated source registry for Module 5 (Theme Radar)
-# Tiers: tier_1 = central banks / supranational (highest signal), tier_2 = institutional/independent
+# sources.yml — Layer 1 curated registry for Module 5 (Theme Radar)
+# Layer 1: central bank RSS feeds + 8 trusted Substacks (always runs, guaranteed content)
+# Layer 2 (Exa semantic discovery) and Layer 3 (citation tracking) are handled in content_scraper.py
 
 central_banks:
   - name: Federal Reserve Speeches
@@ -35,29 +36,6 @@ central_banks:
     credibility: tier_1
     position_tags: [EM, INR, rates]
 
-  - name: PBOC Press Releases
-    url: https://www.pbc.gov.cn/en/3688110/3688172/index.html
-    credibility: tier_1
-    position_tags: [EM, dollar, rates]
-
-  - name: Bank Indonesia
-    url: https://www.bi.go.id/en/publikasi/ruang-media/news-release/default.aspx
-    credibility: tier_1
-    position_tags: [EM, IDR, rates]
-
-  - name: Banco Central do Brasil
-    url: https://www.bcb.gov.br/en
-    credibility: tier_1
-    position_tags: [EM, BRL, rates]
-
-  - name: Bank of Canada
-    rss: https://www.bankofcanada.ca/feed/
-    credibility: tier_1
-
-  - name: Reserve Bank of Australia
-    rss: https://www.rba.gov.au/rss/rss-cb-speeches.xml
-    credibility: tier_1
-
   - name: IMF Blog
     rss: https://www.imf.org/en/Blogs/rss
     credibility: tier_1
@@ -73,47 +51,19 @@ central_banks:
     credibility: tier_1
     position_tags: [EM, BRL, INR, IDR]
 
-buyside:
-  - name: PIMCO Blog
-    rss: https://www.pimco.com/rss/feeds/blog.xml
-    credibility: tier_2
-    position_tags: [rates, duration, EM]
+  - name: Bank of Canada
+    rss: https://www.bankofcanada.ca/feed/
+    credibility: tier_1
 
-  - name: GMO Letters
-    url: https://www.gmo.com/americas/research-library/
-    credibility: tier_2
-    scrape_frequency: monthly
-
-  - name: BlackRock Investment Institute
-    url: https://www.blackrock.com/us/individual/insights/blackrock-investment-institute
-    credibility: tier_2
-    position_tags: [rates, EM, dollar, gold, fiscal, duration]
-
-  - name: Man Group Institute
-    url: https://www.man.com/insights
-    credibility: tier_2
-    position_tags: [rates, EM, dollar]
+  - name: Reserve Bank of Australia
+    rss: https://www.rba.gov.au/rss/rss-cb-speeches.xml
+    credibility: tier_1
 
 independent:
   - name: Lyn Alden
     rss: https://www.lynalden.com/feed/
     credibility: tier_2
     position_tags: [gold, dollar, fiscal, EM]
-
-  - name: Doomberg
-    rss: https://doomberg.substack.com/feed
-    credibility: tier_2
-    position_tags: [energy, commodities]
-
-  - name: Macro Alf (Alfonso Peccatiello)
-    rss: https://themacrocompass.substack.com/feed
-    credibility: tier_2
-    position_tags: [rates, macro]
-
-  - name: Adam Tooze Chartbook
-    rss: https://adamtooze.substack.com/feed
-    credibility: tier_2
-    position_tags: [geopolitics, fiscal, EM]
 
   - name: Joseph Wang (FedGuy)
     rss: https://fedguy.com/feed/
@@ -125,32 +75,27 @@ independent:
     credibility: tier_2
     position_tags: [dollar, gold, fiscal, EM]
 
+  - name: CrossBorder Capital (Michael Howell)
+    rss: https://crossbordercapital.substack.com/feed
+    credibility: tier_2
+    position_tags: [liquidity, dollar, gold, EM]
+
   - name: Andreas Steno Larsen
     rss: https://andreastenolarsen.substack.com/feed
     credibility: tier_2
     position_tags: [rates, macro, EM]
 
-  - name: CrossBorder Capital (Michael Howell)
-    rss: https://crossbordercapital.substack.com/feed
+  - name: Adam Tooze Chartbook
+    rss: https://adamtooze.substack.com/feed
     credibility: tier_2
-    position_tags: [liquidity, dollar, gold, EM]
+    position_tags: [geopolitics, fiscal, EM]
 
   - name: Robin Brooks
     rss: https://robinjbrooks.substack.com/feed
     credibility: tier_2
     position_tags: [dollar, EM, FX, rates, BRL, INR, IDR]
 
-  - name: Kevin Muir (MacroTourist)
-    rss: https://themacrotourist.substack.com/feed
+  - name: Macro Alf (Alfonso Peccatiello)
+    rss: https://themacrocompass.substack.com/feed
     credibility: tier_2
-    position_tags: [rates, gold, dollar, fiscal]
-
-  - name: Louis-Vincent Gave
-    rss: https://louisvincentgave.substack.com/feed
-    credibility: tier_2
-    position_tags: [EM, dollar, gold, geopolitics]
-
-  - name: Brent Donnelly
-    rss: https://50in50.substack.com/feed
-    credibility: tier_2
-    position_tags: [FX, JPY, dollar, rates]
+    position_tags: [rates, macro]

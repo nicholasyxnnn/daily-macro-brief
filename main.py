@@ -76,10 +76,25 @@ def main() -> None:
         calendar_data = get_calendar_fallback()
 
     # ── Module 5 data: Content scrape + score + prefilter ─────────────────
+    citation_item = None
+    regime_items = []
     try:
-        raw_items = fetch_content(sources, active_positions)
+        raw_items = fetch_content(sources, active_positions, market_data)
         valid_items = validate_content_items(raw_items)
-        scored_items = score_and_rank(valid_items, active_positions)
+
+        # Separate by role:
+        # tier_1 (central banks) → regime context for all modules
+        # tier_2 (Substacks + Exa) → Theme Radar candidates (non-mainstream signal)
+        # citation_count >= 2 → Contrarian Corner feed
+        regime_items = [i for i in valid_items if i.source_tier == "tier_1"]
+        citation_items = [i for i in valid_items if i.citation_count >= 2]
+        citation_item = max(citation_items, key=lambda x: x.citation_count, default=None)
+
+        theme_candidates = [
+            i for i in valid_items
+            if i.source_tier != "tier_1" and i.citation_count == 0
+        ]
+        scored_items = score_and_rank(theme_candidates, active_positions)
 
         # Haiku prefilter: approve/reject from top scored items, always deliver 3
         approved, rejected = [], []
@@ -110,8 +125,10 @@ def main() -> None:
             market_data=market_data,
             calendar_data=calendar_data,
             content_items=content_items,
+            regime_items=regime_items,
             positions=positions,
             chart_asset=chart_asset,
+            citation_item=citation_item,
         )
         synthesis = validate_output(synthesis)
         chart_caption = synthesis.get("module_4_caption", "")
