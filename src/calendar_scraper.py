@@ -7,13 +7,21 @@ Last:     TradingEconomics HTML scrape
 All times converted to HKT. Events grouped by Asia / Europe / US session.
 """
 from dataclasses import dataclass
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 import random
 import time
 import requests
 from bs4 import BeautifulSoup
 
 import config as cfg
+
+HKT = timezone(timedelta(hours=8))
+
+
+def _today_hkt() -> date:
+    """Return the current date in HKT (UTC+8), not the server's local UTC date.
+    Critical: GitHub Actions runs in UTC; at 22:00 UTC May 31 the brief is for June 1 HKT."""
+    return datetime.now(HKT).date()
 
 # ── Session mapping ────────────────────────────────────────────────────────
 # Handles both 3-letter currency codes (ForexFactory) and ISO-2 country codes (Finnhub)
@@ -58,7 +66,7 @@ def _et_to_hkt(time_str: str) -> str:
         return time_str
     try:
         t = datetime.strptime(time_str.strip().lower(), "%I:%M%p")
-        hkt = t + timedelta(hours=12 if _is_us_edt(date.today()) else 13)
+        hkt = t + timedelta(hours=12 if _is_us_edt(_today_hkt()) else 13)
         return hkt.strftime("%H:%M")
     except ValueError:
         return time_str
@@ -97,7 +105,7 @@ class CalendarData:
     source: str     # "finnhub" | "forexfactory" | "tradingeconomics" | "unavailable"
 
     def format_telegram(self) -> str:
-        today = date.today().strftime("%Y-%m-%d")
+        today = _today_hkt().strftime("%Y-%m-%d")
         lines = [
             f"<b>TODAY'S CALENDAR — {today} (HKT)</b>\n",
             "<pre>",
@@ -162,7 +170,7 @@ def _fetch_finnhub() -> list[CalendarEvent]:
     """Primary: Finnhub economic calendar JSON API. Times in UTC → converted to HKT."""
     if not cfg.FINNHUB_API_KEY:
         raise ValueError("FINNHUB_API_KEY not set")
-    today = date.today().isoformat()
+    today = _today_hkt().isoformat()
     resp = requests.get(
         "https://finnhub.io/api/v1/calendar/economic",
         params={"from": today, "to": today, "token": cfg.FINNHUB_API_KEY},
@@ -196,7 +204,7 @@ def _fetch_finnhub() -> list[CalendarEvent]:
 
 def _scrape_forexfactory() -> list[CalendarEvent]:
     """Fallback: ForexFactory HTML scrape. Times in ET → converted to HKT."""
-    today = date.today()
+    today = _today_hkt()
     params = {"day": today.strftime("%b%d.%Y").lower()}
     time.sleep(random.uniform(1.0, 2.5))
     resp = requests.get(
