@@ -81,10 +81,14 @@ def main() -> None:
         valid_items = validate_content_items(raw_items)
         scored_items = score_and_rank(valid_items, active_positions)
 
-        # Haiku prefilter runs on top 3 only
-        top3 = scored_items[:3]
-        filtered = [it for it in top3 if haiku_prefilter(it)]
-        content_items = filtered if filtered else top3  # fail open
+        # Haiku prefilter: approve/reject from top scored items, always deliver 3
+        approved, rejected = [], []
+        for it in scored_items[:6]:
+            (approved if haiku_prefilter(it) else rejected).append(it)
+        # Fill to 3: approved first, then rejected as backfill
+        content_items = (approved + rejected)[:3]
+        if not content_items:
+            content_items = scored_items[:3]
         save_content_cache(scored_items[:10])
     except Exception as e:
         admin_alert("content", e)

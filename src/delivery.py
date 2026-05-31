@@ -52,28 +52,31 @@ def send_chart(image_bytes: bytes, caption: str, chat_id: str = None) -> None:
 
 
 def format_module_2(items: list[dict]) -> str:
-    """Format Module 2 synthesis output for Telegram."""
     parts = []
     for i, item in enumerate(items, 1):
+        if not item.get("headline") or not item.get("body"):
+            continue
         parts.append(
             f"<b>{i}. {item['headline']}</b>\n"
             f"{item['body']}\n"
             f"<i>→ {item['so_what']}</i>"
         )
-    return "\n\n".join(parts)
+    return "\n\n".join(parts) if parts else "[No items generated]"
 
 
 def format_module_5(items: list[dict]) -> str:
-    """Format Module 5 theme radar for Telegram."""
     parts = []
     for item in items:
+        if not item.get("title") or not item.get("summary"):
+            continue
+        link_part = f' — <a href="{item["link"]}">link</a>' if item.get("link") else ""
         parts.append(
             f"<b>{item['title']}</b>\n"
-            f"<i>{item['source']}</i> — <a href=\"{item['link']}\">link</a>\n\n"
+            f"<i>{item.get('source', '')}</i>{link_part}\n\n"
             f"{item['summary']}\n\n"
             f"<i>Book: {item['book_implication']}</i>"
         )
-    return "\n\n─────\n\n".join(parts)
+    return "\n\n─────\n\n".join(parts) if parts else "[No theme items available today]"
 
 
 def format_module_6(text: str) -> str:
