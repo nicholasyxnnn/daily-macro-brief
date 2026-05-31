@@ -58,6 +58,7 @@ pip install -r requirements.txt
 | `FRED_API_KEY` | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/api_key.html) | Free |
 | `EXA_API_KEY` | [exa.ai](https://exa.ai) | Free tier (1000 req/month) — Layer 2 dynamic discovery |
 | `NEWSAPI_KEY` | [newsapi.org](https://newsapi.org) | Free tier (100 req/day) — Module 2 market context |
+| `FINNHUB_API_KEY` | [finnhub.io](https://finnhub.io) | Free tier (60 req/min) — Module 3 calendar primary |
 
 ### 3. Add secrets to GitHub
 

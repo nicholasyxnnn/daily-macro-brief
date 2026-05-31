@@ -11,6 +11,7 @@ TELEGRAM_ADMIN_CHAT_ID: str = os.environ.get("TELEGRAM_ADMIN_CHAT_ID", TELEGRAM_
 FRED_API_KEY: str = os.environ.get("FRED_API_KEY", "")
 EXA_API_KEY: str = os.environ.get("EXA_API_KEY", "")
 NEWSAPI_KEY: str = os.environ.get("NEWSAPI_KEY", "")
+FINNHUB_API_KEY: str = os.environ.get("FINNHUB_API_KEY", "")
 
 
 def load_positions() -> dict:
