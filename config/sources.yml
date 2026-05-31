@@ -1,5 +1,5 @@
 # sources.yml — curated source registry for Module 5 (Theme Radar)
-# Tiers: tier_1 = central banks (highest signal), tier_2 = institutional/independent
+# Tiers: tier_1 = central banks / supranational (highest signal), tier_2 = institutional/independent
 
 central_banks:
   - name: Federal Reserve Speeches
@@ -11,6 +11,11 @@ central_banks:
     rss: https://www.ecb.europa.eu/rss/fsr.html
     credibility: tier_1
 
+  - name: ECB Working Papers
+    rss: https://www.ecb.europa.eu/pub/research/working-papers/rss/ecb.wpaper.xml
+    credibility: tier_1
+    position_tags: [rates, inflation, EM]
+
   - name: BIS Working Papers
     rss: https://www.bis.org/doclist/wppubls.rss
     credibility: tier_1
@@ -18,6 +23,30 @@ central_banks:
   - name: BOJ Speeches
     rss: https://www.boj.or.jp/en/rss/release.xml
     credibility: tier_1
+    position_tags: [JPY, BOJ, rates]
+
+  - name: Bank of Canada
+    rss: https://www.bankofcanada.ca/feed/
+    credibility: tier_1
+
+  - name: Reserve Bank of Australia
+    rss: https://www.rba.gov.au/rss/rss-cb-speeches.xml
+    credibility: tier_1
+
+  - name: IMF Blog
+    rss: https://www.imf.org/en/Blogs/rss
+    credibility: tier_1
+    position_tags: [EM, fiscal, dollar, rates]
+
+  - name: NBER Working Papers
+    rss: https://www.nber.org/rss/new_releases.xml
+    credibility: tier_1
+    position_tags: [fiscal, rates, inflation, EM]
+
+  - name: World Bank Research
+    rss: https://blogs.worldbank.org/rss.xml
+    credibility: tier_1
+    position_tags: [EM, BRL, INR, IDR]
 
 buyside:
   - name: PIMCO Blog
@@ -62,11 +91,27 @@ independent:
     credibility: tier_2
     position_tags: [dollar, liquidity]
 
-twitter:
-  - handle: LukeGromen
-    nitter_url: https://nitter.net/LukeGromen/rss
-    position_tags: [dollar, gold, fiscal]
+  - name: Joseph Wang (FedGuy)
+    rss: https://fedguy.com/feed/
+    credibility: tier_2
+    position_tags: [dollar, liquidity, rates, UST]
 
-  - handle: JeffSnider_AIP
-    nitter_url: https://nitter.net/JeffSnider_AIP/rss
-    position_tags: [dollar, eurodollar, rates]
+  - name: Luke Gromen (FFTT)
+    rss: https://fftt-llc.substack.com/feed
+    credibility: tier_2
+    position_tags: [dollar, gold, fiscal, EM]
+
+  - name: Jeff Snider (Eurodollar University)
+    rss: https://eurodollar.substack.com/feed
+    credibility: tier_2
+    position_tags: [dollar, eurodollar, rates, liquidity]
+
+  - name: Andreas Steno Larsen
+    rss: https://andreastenolarsen.substack.com/feed
+    credibility: tier_2
+    position_tags: [rates, macro, EM]
+
+  - name: CrossBorder Capital (Michael Howell)
+    rss: https://crossbordercapital.substack.com/feed
+    credibility: tier_2
+    position_tags: [liquidity, dollar, gold, EM]

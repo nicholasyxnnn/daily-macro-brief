@@ -1,9 +1,14 @@
 """
-Module 5 data layer — RSS feeds + Nitter + periodic scrape sources.
+Module 5 data layer — RSS feeds + NewsAPI + GDELT.
 Returns ContentItem list consumed by scorer.py.
+
+Source tiers:
+  tier_1 — Central banks / supranational (always scraped)
+  tier_2 — Buy-side / independent macro (RSS)
+  tier_3 — Dynamic (NewsAPI keyword search, GDELT broad sweep)
 """
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 from typing import Optional
 import random
 import time
@@ -17,8 +22,38 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0",
 ]
 
-# Items older than this are excluded before scoring
 MAX_AGE_HOURS = 48
+
+# Domains the PM already reads — excluded from NewsAPI results
+MAINSTREAM_EXCLUDE = [
+    "bloomberg.com", "reuters.com", "ft.com", "wsj.com",
+    "cnbc.com", "businessinsider.com", "marketwatch.com",
+    "economist.com", "nytimes.com", "theguardian.com",
+]
+
+# Maps position.yml tags → human-readable search terms for NewsAPI / GDELT
+TAG_TERMS = {
+    "JPY":        "yen",
+    "BOJ":        "Bank of Japan",
+    "UST":        "treasury bonds",
+    "fiscal":     "fiscal deficit",
+    "EM":         "emerging markets",
+    "gold":       "gold",
+    "real_rates": "real rates",
+    "dollar":     "US dollar",
+    "rates":      "interest rates",
+    "duration":   "bond duration",
+    "eurodollar": "eurodollar",
+    "BRL":        "Brazil",
+    "INR":        "India",
+    "IDR":        "Indonesia",
+    "geopolitics":"geopolitics",
+    "energy":     "energy",
+    "inflation":  "inflation",
+    "liquidity":  "liquidity",
+    "carry":      "carry trade",
+    "macro":      "macro economy",
+}
 
 
 @dataclass
@@ -31,7 +66,6 @@ class ContentItem:
     summary: str
     word_count: int
     position_tags: list = field(default_factory=list)
-    # filled by scorer
     score: float = 0.0
 
 
@@ -44,7 +78,6 @@ def _random_headers() -> dict:
 
 
 def _parse_date(entry) -> Optional[datetime]:
-    """Best-effort parse of feedparser's published_parsed or updated_parsed."""
     for attr in ("published_parsed", "updated_parsed"):
         t = getattr(entry, attr, None)
         if t:
@@ -63,24 +96,19 @@ def _entry_to_item(entry, source_name: str, source_tier: str, position_tags: lis
     if published is None:
         published = datetime.now(timezone.utc)
 
-    # Check age
     age_hours = (datetime.now(timezone.utc) - published).total_seconds() / 3600
     if age_hours > MAX_AGE_HOURS:
         return None
 
-    # Summary: prefer summary over content, truncate to first 400 words
     raw_summary = getattr(entry, "summary", "") or ""
     if not raw_summary:
         content = getattr(entry, "content", [])
         if content:
             raw_summary = content[0].get("value", "")
-    # Strip HTML tags
     if raw_summary:
         soup = BeautifulSoup(raw_summary, "lxml")
         raw_summary = soup.get_text(separator=" ", strip=True)
     words = raw_summary.split()
-    summary = " ".join(words[:400])
-    word_count = len(words)
 
     return ContentItem(
         title=title,
@@ -88,8 +116,8 @@ def _entry_to_item(entry, source_name: str, source_tier: str, position_tags: lis
         source_name=source_name,
         source_tier=source_tier,
         published=published,
-        summary=summary,
-        word_count=word_count,
+        summary=" ".join(words[:400]),
+        word_count=len(words),
         position_tags=position_tags,
     )
 
@@ -108,61 +136,210 @@ def _fetch_rss(url: str, source_name: str, source_tier: str, position_tags: list
         return []
 
 
-def _fetch_nitter(nitter_url: str, handle: str, position_tags: list) -> list[ContentItem]:
-    """Fetch Twitter account via Nitter RSS. Treats each tweet as a content item."""
-    items = _fetch_rss(
-        url=nitter_url,
-        source_name=f"@{handle}",
-        source_tier="tier_3",
-        position_tags=position_tags,
-    )
-    # Tweets are short — word_count will naturally be low, scored accordingly
-    return items
+def _build_tag_query(positions: list[dict], max_terms: int = 6) -> tuple[str, list[str]]:
+    """
+    Convert positions list to a search query string and flat tag list.
+    Returns (query_string, all_tags).
+    """
+    all_tags: list[str] = []
+    for p in positions:
+        all_tags.extend(p.get("tags", []))
+    all_tags = list(dict.fromkeys(all_tags))  # dedupe preserving order
+
+    terms = []
+    seen = set()
+    for tag in all_tags:
+        term = TAG_TERMS.get(tag, tag)
+        if term not in seen:
+            seen.add(term)
+            terms.append(f'"{term}"' if " " in term else term)
+        if len(terms) >= max_terms:
+            break
+
+    return " OR ".join(terms), all_tags
 
 
-def fetch_content(sources: dict) -> list[ContentItem]:
-    """Fetch all sources from sources.yml and return flat ContentItem list."""
+def _fetch_newsapi(positions: list[dict], api_key: str) -> list[ContentItem]:
+    """
+    Search NewsAPI for articles matching position tags from the last 24h.
+    Excludes mainstream outlets the PM already reads.
+    """
+    if not api_key or not positions:
+        return []
+
+    query, all_tags = _build_tag_query(positions, max_terms=6)
+    if not query:
+        return []
+
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    try:
+        time.sleep(random.uniform(0.5, 1.0))
+        resp = requests.get(
+            "https://newsapi.org/v2/everything",
+            params={
+                "q": query,
+                "from": yesterday,
+                "sortBy": "relevancy",
+                "language": "en",
+                "pageSize": 25,
+                "excludeDomains": ",".join(MAINSTREAM_EXCLUDE),
+                "apiKey": api_key,
+            },
+            headers={"User-Agent": random.choice(USER_AGENTS)},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        items = []
+        for article in data.get("articles", []):
+            title = (article.get("title") or "").strip()
+            url = (article.get("url") or "").strip()
+            if not title or not url or title == "[Removed]":
+                continue
+
+            description = article.get("description") or article.get("content") or ""
+            words = description.split()
+
+            published = datetime.now(timezone.utc)
+            pub_str = article.get("publishedAt", "")
+            if pub_str:
+                try:
+                    published = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
+                except ValueError:
+                    pass
+
+            age_hours = (datetime.now(timezone.utc) - published).total_seconds() / 3600
+            if age_hours > MAX_AGE_HOURS:
+                continue
+
+            items.append(ContentItem(
+                title=title,
+                url=url,
+                source_name=article.get("source", {}).get("name", "NewsAPI"),
+                source_tier="tier_3",
+                published=published,
+                summary=" ".join(words[:400]),
+                word_count=len(words),
+                position_tags=all_tags,
+            ))
+        return items
+    except Exception:
+        return []
+
+
+def _fetch_gdelt(positions: list[dict]) -> list[ContentItem]:
+    """
+    GDELT Doc 2.0 API — free, no key, scans thousands of global outlets.
+    Returns articles from last 24h matching position-tag themes.
+    """
+    if not positions:
+        return []
+
+    query, all_tags = _build_tag_query(positions, max_terms=5)
+    if not query:
+        return []
+
+    try:
+        time.sleep(random.uniform(0.5, 1.0))
+        resp = requests.get(
+            "https://api.gdeltproject.org/api/v2/doc/doc",
+            params={
+                "query": query + " sourcelang:english",
+                "mode": "artlist",
+                "maxrecords": 25,
+                "format": "json",
+                "timespan": "24h",
+                "sort": "datedesc",
+            },
+            headers={"User-Agent": random.choice(USER_AGENTS)},
+            timeout=20,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        items = []
+        for art in data.get("articles", []):
+            title = (art.get("title") or "").strip()
+            url = (art.get("url") or "").strip()
+            if not title or not url:
+                continue
+
+            # Skip mainstream domains
+            domain = art.get("domain", "")
+            if any(m in domain for m in MAINSTREAM_EXCLUDE):
+                continue
+
+            # Parse GDELT date format: "20240531120000"
+            seendate = art.get("seendate", "")
+            published = datetime.now(timezone.utc)
+            if seendate and len(seendate) >= 14:
+                try:
+                    published = datetime.strptime(seendate[:14], "%Y%m%d%H%M%S").replace(tzinfo=timezone.utc)
+                except ValueError:
+                    pass
+
+            items.append(ContentItem(
+                title=title,
+                url=url,
+                source_name=domain or "GDELT",
+                source_tier="tier_3",
+                published=published,
+                summary=title,   # GDELT artlist has no body — title is all we get
+                word_count=len(title.split()),
+                position_tags=all_tags,
+            ))
+        return items
+    except Exception:
+        return []
+
+
+def fetch_content(sources: dict, positions: list[dict] = None) -> list[ContentItem]:
+    """
+    Fetch all content sources and return flat ContentItem list.
+    positions: list of position dicts from positions.yml — used for NewsAPI/GDELT queries.
+    """
     all_items: list[ContentItem] = []
 
-    # Central banks (tier_1)
+    # Tier 1 — Central banks
     for src in sources.get("central_banks", []):
         rss = src.get("rss") or src.get("url")
         if not rss:
             continue
-        items = _fetch_rss(rss, src["name"], "tier_1", [])
-        all_items.extend(items)
+        tags = src.get("position_tags", [])
+        all_items.extend(_fetch_rss(rss, src["name"], "tier_1", tags))
 
-    # Buy-side (tier_2) — skip quarterly/monthly unless recently updated
+    # Tier 2 — Buy-side
     for src in sources.get("buyside", []):
         freq = src.get("scrape_frequency", "daily")
+        tags = src.get("position_tags", [])
         rss = src.get("rss")
         url = src.get("url")
-        tags = src.get("position_tags", [])
         if rss:
             all_items.extend(_fetch_rss(rss, src["name"], "tier_2", tags))
         elif url and freq == "daily":
-            # Scrape HTML for link list — best effort
             all_items.extend(_scrape_html_links(url, src["name"], "tier_2", tags))
 
-    # Independent macro (tier_2)
+    # Tier 2 — Independent macro
     for src in sources.get("independent", []):
         rss = src.get("rss")
         tags = src.get("position_tags", [])
         if rss:
             all_items.extend(_fetch_rss(rss, src["name"], "tier_2", tags))
 
-    # Twitter via Nitter (tier_3)
-    for src in sources.get("twitter", []):
-        nitter_url = src.get("nitter_url")
-        tags = src.get("position_tags", [])
-        if nitter_url:
-            all_items.extend(_fetch_nitter(nitter_url, src.get("handle", ""), tags))
+    # Tier 3 — Dynamic: NewsAPI keyword search
+    if positions:
+        import config as cfg
+        all_items.extend(_fetch_newsapi(positions, cfg.NEWSAPI_KEY))
+
+    # Tier 3 — Dynamic: GDELT broad sweep
+    if positions:
+        all_items.extend(_fetch_gdelt(positions))
 
     return all_items
 
 
 def _scrape_html_links(url: str, source_name: str, source_tier: str, position_tags: list) -> list[ContentItem]:
-    """Scrape a research library page for recent article links. Best-effort."""
     try:
         time.sleep(random.uniform(1.0, 2.0))
         resp = requests.get(url, headers=_random_headers(), timeout=15)

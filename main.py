@@ -77,7 +77,7 @@ def main() -> None:
 
     # ── Module 5 data: Content scrape + score + prefilter ─────────────────
     try:
-        raw_items = fetch_content(sources)
+        raw_items = fetch_content(sources, active_positions)
         valid_items = validate_content_items(raw_items)
         scored_items = score_and_rank(valid_items, active_positions)
 
