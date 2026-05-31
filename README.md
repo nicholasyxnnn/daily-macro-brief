@@ -1,6 +1,6 @@
 # daily-macro-brief
 
-Automated daily macro brief agent for institutional PMs. Runs every weekday at 6am ET via GitHub Actions. Delivers a structured, synthesis-first brief to Telegram — market dashboard, 3 things that matter, economic calendar, one chart, theme radar from non-mainstream sources, and a contrarian corner.
+Automated daily macro brief agent for institutional PMs. Runs every weekday at 6am HKT via GitHub Actions. Delivers a structured, synthesis-first brief to Telegram — market dashboard, 3 things that matter, economic calendar, one chart, theme radar from non-mainstream sources, and a contrarian corner.
 
 **Cost: ~$0.023/day (~$0.46/month on weekdays).**
 
