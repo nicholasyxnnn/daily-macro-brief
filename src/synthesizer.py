@@ -64,10 +64,14 @@ def _format_regime_context(items: list[ContentItem]) -> str:
     """Central bank items formatted as regime background — not Theme Radar candidates."""
     if not items:
         return "No central bank publications in the last 48h."
-    parts = []
-    for item in items[:6]:
-        parts.append(f"- [{item.source_name}] {item.title}")
-    return "\n".join(parts)
+    return "\n".join(f"- [{item.source_name}] {item.title}" for item in items[:6])
+
+
+def _format_news_context(items: list[ContentItem]) -> str:
+    """Recent market news headlines for Module 2 context."""
+    if not items:
+        return "No recent market news available."
+    return "\n".join(f"- [{item.source_name}] {item.title}" for item in items[:8])
 
 
 def _format_content_items(items: list[ContentItem]) -> str:
@@ -100,6 +104,7 @@ def synthesize(
     positions: dict,
     chart_asset: str,
     regime_items: list[ContentItem] = None,
+    module2_news: list[ContentItem] = None,
     citation_item: Optional[ContentItem] = None,
 ) -> dict:
     """
@@ -124,34 +129,37 @@ def synthesize(
         f"{market_data.format_telegram()}\n\n"
         f"## Calendar\n"
         f"{calendar_data.format_telegram()}\n\n"
-        f"## Central Bank & Policy Backdrop (regime context — not for Theme Radar)\n"
+        f"## Central Bank & Policy Backdrop (regime context)\n"
         f"{_format_regime_context(regime_items or [])}\n\n"
+        f"## Current Market News (Module 2 context — what markets are reporting)\n"
+        f"{_format_news_context(module2_news or [])}\n\n"
         f"## Chart Selected\n"
         f"Asset: {chart_asset} (rules-based selection, already determined)\n\n"
-        f"## Non-Mainstream Content (Theme Radar candidates — Substacks + Exa discovery)\n"
+        f"## Non-Mainstream Analytical Content (Modules 5 & 6 — Substacks + Exa discovery)\n"
         f"{_format_content_items(content_items)}"
         f"{citation_block}\n\n"
         f"## Task\n"
         f"You are a macro analyst writing for a PM who already reads Bloomberg, FT, and WSJ.\n"
-        f"For every module — synthesize, select, explain:\n"
-        f"  Module 2: What actually changed overnight that moves the needle on this specific book? "
-        f"Draw connections across market data, calendar, and content. State the implication, not the event.\n"
-        f"  Module 4: What does this chart imply about the current macro regime and the PM's positioning?\n"
-        f"  Module 5: Which 3 content items carry genuine non-consensus signal relative to the book? "
-        f"Write the book implication from your own analytical read — not a paraphrase of the source.\n"
-        f"  Module 6: Identify a narrative the market is not pricing. If nothing is explicit in the "
-        f"content, derive it from the combination of overnight moves, calendar, and content themes. "
-        f"Never hedge. Never use 'some analysts say'. State a point of view.\n\n"
+        f"Synthesize, select, explain — state a point of view, never regurgitate.\n\n"
+        f"  Module 2: Use market data + news context + calendar to identify the 3 things that "
+        f"actually changed overnight and matter for this specific book. State the implication, "
+        f"not the event. Numbers must come from market data above.\n"
+        f"  Module 4: What does this chart imply about the current regime and PM's positioning?\n"
+        f"  Module 5: From the non-mainstream content above, select the 3 items with genuine "
+        f"non-consensus signal for the book. Write the book implication from your own analytical "
+        f"read — not a paraphrase of the source. Exa and Substack items are your primary material.\n"
+        f"  Module 6: Identify a narrative the market is not pricing. Draw from the full data set: "
+        f"overnight moves, calendar, content, and policy backdrop. If nothing explicit, derive it. "
+        f"Never hedge. State a point of view.\n\n"
         f"Your entire response must be valid XML starting with <brief> and ending with </brief>.\n"
-        f"Do not add any prose before or after the XML.\n"
-        f"Numbers in module 2 must come from the market data above — never invent prices or rates."
+        f"Do not add any prose before or after the XML."
     )
 
     for attempt in range(2):
         try:
             resp = client.messages.create(
                 model=SONNET_MODEL,
-                max_tokens=2000,
+                max_tokens=2500,
                 system=[
                     {
                         "type": "text",

@@ -86,18 +86,23 @@ def main() -> None:
         # tier_1 (central banks) → regime context for all modules
         # tier_2 (Substacks + Exa) → Theme Radar candidates (non-mainstream signal)
         # citation_count >= 2 → Contrarian Corner feed
+        # Route items by role:
+        # tier_1 (central banks)  → regime context background
+        # news (NewsAPI)          → Module 2 market context
+        # tier_2 (Substacks+Exa) → Theme Radar candidates (Modules 5+6)
+        # citation_count >= 2     → Contrarian Corner input
         regime_items = [i for i in valid_items if i.source_tier == "tier_1"]
+        module2_news = [i for i in valid_items if i.source_tier == "news"]
         citation_items = [i for i in valid_items if i.citation_count >= 2]
         citation_item = max(citation_items, key=lambda x: x.citation_count, default=None)
 
         theme_candidates = [
             i for i in valid_items
-            if i.source_tier != "tier_1" and i.citation_count == 0
+            if i.source_tier not in ("tier_1", "news") and i.citation_count == 0
         ]
-        # If no tier_2 content (Substacks + Exa quiet), fall back to all valid items
-        # so Claude always has material to work with
+        # If no tier_2 content (Substacks + Exa quiet), fall back to all non-news items
         if not theme_candidates:
-            theme_candidates = [i for i in valid_items if i.citation_count == 0]
+            theme_candidates = [i for i in valid_items if i.source_tier not in ("news",) and i.citation_count == 0]
 
         scored_items = score_and_rank(theme_candidates, active_positions)
 
@@ -113,6 +118,7 @@ def main() -> None:
     except Exception as e:
         admin_alert("content", e)
         content_items = get_content_fallback(sources)
+        module2_news = []
 
     # ── Module 4: Chart selection ──────────────────────────────────────────
     chart_bytes = None
@@ -131,6 +137,7 @@ def main() -> None:
             calendar_data=calendar_data,
             content_items=content_items,
             regime_items=regime_items,
+            module2_news=module2_news,
             positions=positions,
             chart_asset=chart_asset,
             citation_item=citation_item,

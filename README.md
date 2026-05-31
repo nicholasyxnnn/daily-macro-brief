@@ -57,6 +57,7 @@ pip install -r requirements.txt
 | `TELEGRAM_ADMIN_CHAT_ID` | Same as above (can be same as CHAT_ID) | Free |
 | `FRED_API_KEY` | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/api_key.html) | Free |
 | `EXA_API_KEY` | [exa.ai](https://exa.ai) | Free tier (1000 req/month) — Layer 2 dynamic discovery |
+| `NEWSAPI_KEY` | [newsapi.org](https://newsapi.org) | Free tier (100 req/day) — Module 2 market context |
 
 ### 3. Add secrets to GitHub
 

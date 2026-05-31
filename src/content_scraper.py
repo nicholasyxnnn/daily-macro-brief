@@ -394,6 +394,77 @@ def _fetch_layer3_citations(
     return items
 
 
+# ── NewsAPI — Module 2 context ────────────────────────────────────────────────
+
+def _fetch_newsapi(positions: list[dict], api_key: str) -> list[ContentItem]:
+    """
+    NewsAPI search for recent market-relevant news.
+    Tagged source_tier='news' — used as Module 2 context only, not Theme Radar.
+    Mainstream sources included intentionally: Module 2 needs to know what happened.
+    """
+    if not api_key or not positions:
+        return []
+
+    assets = [p.get("asset", "") for p in positions if p.get("asset")][:4]
+    query = " OR ".join(f'"{a}"' if " " in a else a for a in assets) if assets else "macro markets"
+
+    from datetime import date, timedelta as _td
+    yesterday = (date.today() - _td(days=1)).isoformat()
+
+    try:
+        time.sleep(random.uniform(0.5, 1.0))
+        resp = requests.get(
+            "https://newsapi.org/v2/everything",
+            params={
+                "q": query,
+                "from": yesterday,
+                "sortBy": "relevancy",
+                "language": "en",
+                "pageSize": 10,
+                "apiKey": api_key,
+            },
+            headers={"User-Agent": random.choice(USER_AGENTS)},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        items: list[ContentItem] = []
+        for article in data.get("articles", []):
+            title = (article.get("title") or "").strip()
+            url = (article.get("url") or "").strip()
+            if not title or not url or title == "[Removed]":
+                continue
+
+            description = article.get("description") or article.get("content") or ""
+            words = description.split()
+
+            published = datetime.now(timezone.utc)
+            pub_str = article.get("publishedAt", "")
+            if pub_str:
+                try:
+                    published = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
+                except ValueError:
+                    pass
+
+            if (datetime.now(timezone.utc) - published).total_seconds() / 3600 > MAX_AGE_HOURS:
+                continue
+
+            items.append(ContentItem(
+                title=title,
+                url=url,
+                source_name=article.get("source", {}).get("name", "NewsAPI"),
+                source_tier="news",
+                published=published,
+                summary=" ".join(words[:200]),
+                word_count=len(words),
+                position_tags=[],
+            ))
+        return items[:8]
+    except Exception:
+        return []
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def fetch_content(
@@ -402,12 +473,19 @@ def fetch_content(
     market_data=None,
 ) -> list[ContentItem]:
     """
-    Three-layer content fetch.
+    Three-layer content fetch + NewsAPI for Module 2 context.
     Layer 1 always runs. Layer 2 requires EXA_API_KEY + market_data.
     Layer 3 runs after Layer 1 with no additional config required.
+    NewsAPI items tagged 'news' route to Module 2 context only.
     """
     positions = positions or []
     layer1 = _fetch_layer1(sources)
     layer2 = _fetch_layer2_exa(market_data, positions, cfg.EXA_API_KEY)
     layer3 = _fetch_layer3_citations(layer1, positions)
-    return layer1 + layer2 + layer3
+    news = _fetch_newsapi(positions, cfg.NEWSAPI_KEY)
+
+    print(
+        f"[content] L1={len(layer1)} L2_exa={len(layer2)} L3_cite={len(layer3)} news={len(news)}",
+        flush=True,
+    )
+    return layer1 + layer2 + layer3 + news
