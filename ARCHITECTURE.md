@@ -40,7 +40,7 @@ main.py — orchestrator with isolated module execution
 │         DATA COLLECTION             │
 │  market_data.py   → yfinance + FRED │
 │  calendar_scraper.py → ForexFactory │
-│  content_scraper.py → curated RSS  │
+│  content_scraper.py → RSS + NewsAPI + GDELT │
 └────────────────┬────────────────────┘
                  ↓
 ┌─────────────────────────────────────┐
@@ -97,11 +97,12 @@ daily-macro-brief/
 ├── src/
 │   ├── market_data.py               # Module 1 — yfinance + FRED
 │   ├── calendar_scraper.py          # Module 3 — ForexFactory scrape
-│   ├── content_scraper.py           # Module 5 data layer — RSS + Nitter
+│   ├── content_scraper.py           # Module 5 data layer — RSS + NewsAPI + GDELT
 │   ├── scorer.py                    # Relevance ranking (pure Python)
 │   ├── synthesizer.py               # Claude API calls
 │   ├── chart.py                     # Module 4 — dynamic chart selection
-│   └── delivery.py                  # Telegram sectioned delivery
+│   ├── delivery.py                  # Telegram sectioned delivery
+│   ├── utils.py                     # Shared helpers
 │   ├── fallbacks/
 │   │   ├── market_fallback.py       # Cached/stale data fallback
 │   │   ├── calendar_fallback.py
@@ -154,9 +155,7 @@ Strict XML schema. Never deviate. Never add unrequested sections.
 Schema definitions in prompts/schemas.py.
 
 ## Token Budget Per Module (hard limits)
-- Module 1: data formatting only, no synthesis, ~200 tokens output
 - Module 2: 3 × 80 words max
-- Module 3: structured table, no prose, ~150 tokens output
 - Module 4: caption 30 words exactly
 - Module 5: 3 × 100 words max per summary + 1 line book implication
 - Module 6: 75 words max
@@ -257,16 +256,10 @@ independent:
     position_tags: [dollar, liquidity]
 ```
 
-**Tier 4 — X/Twitter (via Nitter, no API cost)**
-```yaml
-twitter:
-  - handle: LukeGromen
-    nitter_url: https://nitter.net/LukeGromen/rss
-    position_tags: [dollar, gold, fiscal]
-  - handle: JeffSnider_AIP
-    nitter_url: https://nitter.net/JeffSnider_AIP/rss
-    position_tags: [dollar, eurodollar, rates]
-```
+**Tier 3 — Dynamic (NewsAPI keyword search + GDELT broad sweep)**
+- NewsAPI: keyword search driven by active position tags, last 24h, excludes mainstream sources PM already reads
+- GDELT Doc 2.0 API: free, no key required, scans thousands of global outlets for position-relevant themes
+- Both sources feed the same scoring pipeline as RSS — no special handling
 
 ---
 

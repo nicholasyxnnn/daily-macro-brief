@@ -26,7 +26,7 @@ GitHub Actions (6am ET, weekdays)
   → main.py (orchestrator, isolated try/except per module)
       → market_data.py      yfinance + FRED
       → calendar_scraper.py ForexFactory → TradingEconomics fallback
-      → content_scraper.py  RSS + Nitter (14 curated sources)
+      → content_scraper.py  RSS + NewsAPI + GDELT (23 curated RSS sources)
       → scorer.py           Pure Python relevance ranking (zero token cost)
       → synthesizer.py      Haiku prefilter + single Sonnet call (prompt cached)
       → chart.py            Rules-based selection + matplotlib
@@ -56,6 +56,7 @@ pip install -r requirements.txt
 | `TELEGRAM_CHAT_ID` | [@userinfobot](https://t.me/userinfobot) on Telegram | Free |
 | `TELEGRAM_ADMIN_CHAT_ID` | Same as above (can be same as CHAT_ID) | Free |
 | `FRED_API_KEY` | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/api_key.html) | Free |
+| `NEWSAPI_KEY` | [newsapi.org](https://newsapi.org) | Free tier (optional — GDELT used if absent) |
 
 ### 3. Add secrets to GitHub
 
@@ -103,18 +104,19 @@ daily-macro-brief/
 ├── src/
 │   ├── market_data.py                  # Module 1 — yfinance + FRED
 │   ├── calendar_scraper.py             # Module 3 — ForexFactory
-│   ├── content_scraper.py              # Module 5 data — RSS + Nitter
+│   ├── content_scraper.py              # Module 5 data — RSS + NewsAPI + GDELT
 │   ├── scorer.py                       # Relevance ranking (pure Python)
 │   ├── synthesizer.py                  # Claude API — Haiku + Sonnet
 │   ├── chart.py                        # Module 4 — dynamic chart selection
 │   ├── delivery.py                     # Telegram formatter + sender
+│   ├── utils.py                        # Shared helpers
 │   ├── fallbacks/                      # Stale cache + placeholder fallbacks
 │   ├── validators/                     # Scrape shape + Claude output checks
 │   └── monitoring/                     # Silent failure alerts to admin channel
 ├── prompts/schemas.py                  # XML output contracts
 ├── config/
 │   ├── positions.yml                   # PM's current book — edit daily
-│   └── sources.yml                     # 14 curated sources across 4 tiers
+│   └── sources.yml                     # 23 curated RSS sources across 4 tiers
 ├── config.py                           # Settings + env var loader
 ├── main.py                             # Orchestrator
 ├── CLAUDE.md                           # Persistent LLM system context

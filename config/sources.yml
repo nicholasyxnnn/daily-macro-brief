@@ -7,6 +7,11 @@ central_banks:
     credibility: tier_1
     always_include: true
 
+  - name: NY Fed Liberty Street Economics
+    rss: https://libertystreeteconomics.newyorkfed.org/feed/
+    credibility: tier_1
+    position_tags: [rates, dollar, UST, fiscal, duration]
+
   - name: ECB Publications
     rss: https://www.ecb.europa.eu/rss/fsr.html
     credibility: tier_1
@@ -24,6 +29,26 @@ central_banks:
     rss: https://www.boj.or.jp/en/rss/release.xml
     credibility: tier_1
     position_tags: [JPY, BOJ, rates]
+
+  - name: RBI Speeches
+    rss: https://www.rbi.org.in/speeches_rss.xml
+    credibility: tier_1
+    position_tags: [EM, INR, rates]
+
+  - name: PBOC Press Releases
+    url: https://www.pbc.gov.cn/en/3688110/3688172/index.html
+    credibility: tier_1
+    position_tags: [EM, dollar, rates]
+
+  - name: Bank Indonesia
+    url: https://www.bi.go.id/en/publikasi/ruang-media/news-release/default.aspx
+    credibility: tier_1
+    position_tags: [EM, IDR, rates]
+
+  - name: Banco Central do Brasil
+    url: https://www.bcb.gov.br/en
+    credibility: tier_1
+    position_tags: [EM, BRL, rates]
 
   - name: Bank of Canada
     rss: https://www.bankofcanada.ca/feed/
@@ -54,16 +79,20 @@ buyside:
     credibility: tier_2
     position_tags: [rates, duration, EM]
 
-  - name: Hoisington Quarterly
-    url: https://hoisington.com/economic_overview.html
-    credibility: tier_2
-    scrape_frequency: quarterly
-    position_tags: [duration, deflation]
-
   - name: GMO Letters
     url: https://www.gmo.com/americas/research-library/
     credibility: tier_2
     scrape_frequency: monthly
+
+  - name: BlackRock Investment Institute
+    url: https://www.blackrock.com/us/individual/insights/blackrock-investment-institute
+    credibility: tier_2
+    position_tags: [rates, EM, dollar, gold, fiscal, duration]
+
+  - name: Man Group Institute
+    url: https://www.man.com/insights
+    credibility: tier_2
+    position_tags: [rates, EM, dollar]
 
 independent:
   - name: Lyn Alden
@@ -86,11 +115,6 @@ independent:
     credibility: tier_2
     position_tags: [geopolitics, fiscal, EM]
 
-  - name: Concoda
-    rss: https://concoda.substack.com/feed
-    credibility: tier_2
-    position_tags: [dollar, liquidity]
-
   - name: Joseph Wang (FedGuy)
     rss: https://fedguy.com/feed/
     credibility: tier_2
@@ -101,11 +125,6 @@ independent:
     credibility: tier_2
     position_tags: [dollar, gold, fiscal, EM]
 
-  - name: Jeff Snider (Eurodollar University)
-    rss: https://eurodollar.substack.com/feed
-    credibility: tier_2
-    position_tags: [dollar, eurodollar, rates, liquidity]
-
   - name: Andreas Steno Larsen
     rss: https://andreastenolarsen.substack.com/feed
     credibility: tier_2
@@ -115,3 +134,23 @@ independent:
     rss: https://crossbordercapital.substack.com/feed
     credibility: tier_2
     position_tags: [liquidity, dollar, gold, EM]
+
+  - name: Robin Brooks
+    rss: https://robinjbrooks.substack.com/feed
+    credibility: tier_2
+    position_tags: [dollar, EM, FX, rates, BRL, INR, IDR]
+
+  - name: Kevin Muir (MacroTourist)
+    rss: https://themacrotourist.substack.com/feed
+    credibility: tier_2
+    position_tags: [rates, gold, dollar, fiscal]
+
+  - name: Louis-Vincent Gave
+    rss: https://louisvincentgave.substack.com/feed
+    credibility: tier_2
+    position_tags: [EM, dollar, gold, geopolitics]
+
+  - name: Brent Donnelly
+    rss: https://50in50.substack.com/feed
+    credibility: tier_2
+    position_tags: [FX, JPY, dollar, rates]

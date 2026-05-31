@@ -31,7 +31,7 @@ is fast.
 **Haiku prefilter** runs only on the top 3 scored items (~50 tokens/call × 3 = 150 tokens total),
 gating Sonnet's attention to analytically substantive content at negligible cost.
 
-**max_tokens: 1200** hard ceiling on Sonnet output prevents runaway verbose responses and
+**max_tokens: 2000** hard ceiling on Sonnet output prevents runaway verbose responses and
 keeps output cost bounded regardless of prompt drift.
 
 ## Free Tier API Usage
@@ -41,7 +41,9 @@ keeps output cost bounded regardless of prompt drift.
 | FRED API | Rate data | Free (no limit) |
 | yfinance | Market prices | Free (Yahoo Finance) |
 | ForexFactory | Calendar scrape | Free (with rate limiting) |
-| Feedparser / RSS | Content sources | Free |
+| Feedparser / RSS | Content sources (23 curated sources) | Free |
+| NewsAPI | Keyword search by position tags | Free tier (100 req/day) |
+| GDELT Doc 2.0 | Broad global sweep, no key required | Free |
 | Telegram Bot API | Delivery | Free |
 
 ## V2 Cost Considerations
