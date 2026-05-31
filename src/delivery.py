@@ -76,7 +76,7 @@ def format_module_5(items: list[dict]) -> str:
             f"{item['summary']}\n\n"
             f"<i>Book: {item['book_implication']}</i>"
         )
-    return "\n\n─────\n\n".join(parts) if parts else "[No theme items available today]"
+    return "\n\n─────\n\n".join(parts) if parts else "[No other theme items available today]"
 
 
 def format_module_6(text: str) -> str:
