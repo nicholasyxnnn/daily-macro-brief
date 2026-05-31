@@ -105,16 +105,17 @@ def synthesize(
         f"## Content Items for Theme Radar\n"
         f"{_format_content_items(content_items)}\n\n"
         f"## Task\n"
-        f"Produce the XML brief. Modules 2, 4, 5, and 6 only. "
-        f"Numbers in module 2 must reference the market data above. "
-        f"Never invent prices or rates."
+        f"Produce the XML brief for modules 2, 4, 5, and 6.\n"
+        f"Your entire response must be valid XML starting with <brief> and ending with </brief>.\n"
+        f"Do not add any prose before or after the XML.\n"
+        f"Numbers in module 2 must come from the market data above — never invent prices or rates."
     )
 
     for attempt in range(2):
         try:
             resp = client.messages.create(
                 model=SONNET_MODEL,
-                max_tokens=1200,
+                max_tokens=2000,
                 system=[
                     {
                         "type": "text",
@@ -136,4 +137,7 @@ def synthesize(
             ) from e
 
     raw_xml = resp.content[0].text
-    return parse_synthesis(raw_xml)
+    result = parse_synthesis(raw_xml)
+    if not result:
+        print(f"[WARN] parse_synthesis returned empty. Raw response (first 500 chars):\n{raw_xml[:500]}", flush=True)
+    return result

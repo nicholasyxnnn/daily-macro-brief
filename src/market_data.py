@@ -8,30 +8,32 @@ import config as cfg
 
 # --- Ticker maps ---
 
-EQUITY_TICKERS = {
-    "SPY":    "SPY",
-    "QQQ":    "QQQ",
-    "DJI":    "^DJI",
-    "DAX":    "^GDAXI",
-    "FTSE":   "^FTSE",
-    "CAC":    "^FCHI",
-    "Nikkei": "^N225",
-    "HSI":    "^HSI",
-    "CSI300": "000300.SS",
+US_EQUITY_TICKERS = {
+    "S&P 500": "^GSPC",
+    "Nasdaq":  "^NDX",
+    "Dow":     "^DJI",
 }
 
+EU_EQUITY_TICKERS = {
+    "Stoxx 600":  "^STOXX",      # may not resolve — silently skipped if so
+    "EuroStoxx50":"^STOXX50E",
+    "DAX":        "^GDAXI",
+    "CAC 40":     "^FCHI",
+}
+
+# G7 currencies (USD base)
 FX_TICKERS = {
-    "DXY":     "DX-Y.NYB",
     "EUR/USD": "EURUSD=X",
     "USD/JPY": "JPY=X",
     "GBP/USD": "GBPUSD=X",
-    "USD/CNH": "CNH=X",
+    "USD/CAD": "CAD=X",
+    "USD/CHF": "CHF=X",
 }
 
 COMMODITY_TICKERS = {
-    "Gold":  "GC=F",
-    "WTI":   "CL=F",
-    "Brent": "BZ=F",
+    "Gold (XAU)": "GC=F",
+    "WTI":        "CL=F",
+    "Brent":      "BZ=F",
 }
 
 CRYPTO_TICKERS = {
@@ -63,57 +65,66 @@ class AssetRow:
 @dataclass
 class MarketDashboard:
     as_of: str
-    equities: list
+    us_equities: list
+    eu_equities: list
     rates: list
     fx: list
     commodities: list
     crypto: list
     spread_2s10s: float
     spread_change_bp: float
-    # raw numeric values for chart.py std-dev calculations
     raw: dict = field(default_factory=dict)
+
+    # keep unified list for backwards-compat with chart.py
+    @property
+    def equities(self):
+        return self.us_equities + self.eu_equities
 
     def format_telegram(self) -> str:
         today = date.today().strftime("%Y-%m-%d")
         lines = [
             f"<b>OVERNIGHT DASHBOARD — {today}</b>\n",
             "<pre>",
-            f"{'Asset':<14}{'Last':>10}{'Chg':>10}{'Chg%/bp':>10}",
-            "─" * 44,
+            f"{'Asset':<14}{'Last':>10}{'Chg':>10}{'Chg%':>8}",
+            "─" * 42,
         ]
 
-        def equity_line(r: AssetRow) -> str:
+        def eq_line(r: AssetRow) -> str:
             sign = "+" if r.change >= 0 else ""
-            sign_p = "+" if r.pct_change >= 0 else ""
-            return f"{r.name:<14}{r.last:>10,.1f}{sign + f'{r.change:,.1f}':>10}{sign_p + f'{r.pct_change:.1f}%':>10}"
+            sign_p = "+" if (r.pct_change or 0) >= 0 else ""
+            return (f"{r.name:<14}{r.last:>10,.1f}"
+                    f"{sign + f'{r.change:,.1f}':>10}"
+                    f"{sign_p + f'{r.pct_change:.1f}%':>8}")
 
         def rate_line(r: AssetRow) -> str:
-            sign = "+" if r.bp_change >= 0 else ""
-            return f"{r.name:<14}{r.last:>9.2f}%{sign + f'{r.bp_change:.0f}bp':>10}"
+            sign = "+" if (r.bp_change or 0) >= 0 else ""
+            return f"{r.name:<14}{r.last:>8.2f}%  {sign}{r.bp_change:.0f}bp"
 
-        lines.append("EQUITIES")
-        for r in self.equities:
-            lines.append(equity_line(r))
+        lines.append("US EQUITIES")
+        for r in self.us_equities:
+            lines.append(eq_line(r))
 
-        lines.append("FX")
+        lines.append("EU EQUITIES")
+        for r in self.eu_equities:
+            lines.append(eq_line(r))
+
+        lines.append("G7 FX")
         for r in self.fx:
-            lines.append(equity_line(r))
+            lines.append(eq_line(r))
 
-        lines.append("RATES")
+        lines.append("US RATES")
         for r in self.rates:
             lines.append(rate_line(r))
         sign = "+" if self.spread_change_bp >= 0 else ""
-        spread_val = f"{self.spread_2s10s:+.0f}bp"
-        spread_chg = f"{sign}{self.spread_change_bp:.0f}bp"
-        lines.append(f"{'2s10s':<14}{spread_val:>10}{spread_chg:>10}")
+        lines.append(f"{'2s10s':<14}{self.spread_2s10s:>+8.0f}bp  {sign}{self.spread_change_bp:.0f}bp")
 
         lines.append("COMMODITIES")
         for r in self.commodities:
-            lines.append(equity_line(r))
+            lines.append(eq_line(r))
 
         lines.append("CRYPTO")
         for r in self.crypto:
-            lines.append(equity_line(r))
+            lines.append(eq_line(r))
 
         lines.append("</pre>")
         return "\n".join(lines)
@@ -161,7 +172,8 @@ def _fetch_fred_rates() -> tuple[list[AssetRow], dict]:
 
 
 def fetch_market_data() -> MarketDashboard:
-    equities = _fetch_yf_rows(EQUITY_TICKERS)
+    us_equities = _fetch_yf_rows(US_EQUITY_TICKERS)
+    eu_equities = _fetch_yf_rows(EU_EQUITY_TICKERS)
     fx = _fetch_yf_rows(FX_TICKERS)
     commodities = _fetch_yf_rows(COMMODITY_TICKERS)
     crypto = _fetch_yf_rows(CRYPTO_TICKERS)
@@ -185,7 +197,7 @@ def fetch_market_data() -> MarketDashboard:
     spread_change = spread_now - spread_prev
 
     # raw dict for chart.py (prices indexed by name)
-    raw = {r.name: r.last for r in equities + fx + commodities + crypto}
+    raw = {r.name: r.last for r in us_equities + eu_equities + fx + commodities + crypto}
     raw.update(raw_rates)
     raw["2s10s"] = spread_now
 
@@ -200,7 +212,8 @@ def fetch_market_data() -> MarketDashboard:
 
     return MarketDashboard(
         as_of=date.today().isoformat(),
-        equities=equities,
+        us_equities=us_equities,
+        eu_equities=eu_equities,
         rates=all_rates,
         fx=fx,
         commodities=commodities,
