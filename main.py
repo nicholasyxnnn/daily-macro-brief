@@ -6,6 +6,7 @@ State file prevents duplicate briefs on retry runs (idempotency).
 import datetime
 import json
 import sys
+import traceback
 from pathlib import Path
 
 import config as cfg
@@ -112,7 +113,8 @@ def main() -> None:
         chart_caption = synthesis.get("module_4_caption", "")
     except Exception as e:
         admin_alert("synthesis", e)
-        print(f"Synthesis failed: {e}", file=sys.stderr)
+        print(f"Synthesis failed: {type(e).__name__}: {e}", file=sys.stderr)
+        traceback.print_exc()
         sys.exit(1)
 
     # ── Delivery: one section at a time ───────────────────────────────────

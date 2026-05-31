@@ -12,14 +12,15 @@ from src.content_scraper import ContentItem
 from src.market_data import MarketDashboard
 from src.calendar_scraper import CalendarData
 
-if not cfg.ANTHROPIC_API_KEY:
+_api_key = cfg.ANTHROPIC_API_KEY.strip()
+if not _api_key:
     raise EnvironmentError(
         "ANTHROPIC_API_KEY is not set. Add it as a GitHub secret or export it locally."
     )
 
 CLAUDE_MD = (Path(__file__).parent.parent / "CLAUDE.md").read_text()
 
-client = anthropic.Anthropic(api_key=cfg.ANTHROPIC_API_KEY)
+client = anthropic.Anthropic(api_key=_api_key)
 
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 SONNET_MODEL = "claude-sonnet-4-6"
@@ -129,6 +130,10 @@ def synthesize(
                 time.sleep(10)
                 continue
             raise
+        except anthropic.APIStatusError as e:
+            raise RuntimeError(
+                f"{type(e).__name__} (status {e.status_code}): {e.message}"
+            ) from e
 
     raw_xml = resp.content[0].text
     return parse_synthesis(raw_xml)
