@@ -4,47 +4,49 @@
 
 | Component | Model | Input tokens | Output tokens | Est. cost/day |
 |-----------|-------|-------------|---------------|---------------|
-| System prompt (cached) | Sonnet | ~800 cached | — | ~$0.001 |
+| System prompt (cached) | Sonnet | ~900 cached | — | ~$0.001 |
 | Market + calendar data | Sonnet | ~400 uncached | — | ~$0.001 |
-| Theme content excerpts | Sonnet | ~600 uncached | — | ~$0.002 |
-| Synthesis output | Sonnet | — | ~1,200 | ~$0.018 |
+| Regime context + content excerpts | Sonnet | ~800 uncached | — | ~$0.002 |
+| Synthesis output | Sonnet | — | ~1,500 | ~$0.023 |
 | Haiku prefilter (×3) | Haiku | ~150 total | ~30 total | ~$0.001 |
-| **Total** | | | | **~$0.023/day** |
+| **Total** | | | | **~$0.028/day** |
 
 ## Monthly Projection
 
 | Scenario | Days/month | Cost/month |
 |----------|-----------|------------|
-| Weekdays only (20 days) | 20 | **~$0.46** |
-| Daily (31 days) | 31 | **~$0.71** |
+| Weekdays only (20 days) | 20 | **~$0.56** |
+| Daily (31 days) | 31 | **~$0.87** |
 
 ## Cost Levers
 
 **Prompt caching** is the biggest lever. The system prompt (CLAUDE.md + positions + XML schema)
-is ~800 tokens. Caching cuts input cost on that block by ~90% via Anthropic's ephemeral cache
+is ~900 tokens. Caching cuts input cost on that block by ~90% via Anthropic's ephemeral cache
 (5-min TTL, refreshed each run). Daily runs easily stay within TTL when GitHub Actions cold-start
 is fast.
 
 **Single synthesis call** covers modules 2, 4, 5, and 6 together. Calling per-module would
 4× the output token cost with no quality gain.
 
-**Haiku prefilter** runs only on the top 3 scored items (~50 tokens/call × 3 = 150 tokens total),
+**Haiku prefilter** runs only on the top 6 scored items and approves/rejects each in ~50 tokens,
 gating Sonnet's attention to analytically substantive content at negligible cost.
 
 **max_tokens: 2000** hard ceiling on Sonnet output prevents runaway verbose responses and
 keeps output cost bounded regardless of prompt drift.
 
-## Free Tier API Usage
+## API Usage
 
 | Service | Usage | Cost |
 |---------|-------|------|
 | FRED API | Rate data | Free (no limit) |
 | yfinance | Market prices | Free (Yahoo Finance) |
 | ForexFactory | Calendar scrape | Free (with rate limiting) |
-| Feedparser / RSS | Content sources (23 curated sources) | Free |
-| NewsAPI | Keyword search by position tags | Free tier (100 req/day) |
-| GDELT Doc 2.0 | Broad global sweep, no key required | Free |
+| Feedparser / RSS | Layer 1: 12 central bank feeds + 8 Substacks | Free |
+| Exa.ai | Layer 2: 3 semantic queries/day (~60 req/month) | Free tier (1,000 req/month) |
 | Telegram Bot API | Delivery | Free |
+
+Layer 3 (citation tracking) makes HTTP requests to article pages — no API cost, ~15 requests
+per run, absorbed into existing network overhead.
 
 ## V2 Cost Considerations
 

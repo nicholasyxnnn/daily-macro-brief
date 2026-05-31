@@ -62,10 +62,9 @@ def get_content_fallback(sources: dict = None) -> list[ContentItem]:
 
     # Last resort: central bank RSS (tier_1, most reliable)
     if sources:
-        cb_sources = {"central_banks": sources.get("central_banks", []),
-                      "buyside": [], "independent": [], "twitter": []}
+        cb_sources = {"central_banks": sources.get("central_banks", []), "independent": []}
         try:
-            items = fetch_content(cb_sources)
+            items = fetch_content(cb_sources, positions=[], market_data=None)
             return items[:3]
         except Exception:
             pass
