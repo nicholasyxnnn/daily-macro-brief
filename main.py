@@ -15,7 +15,7 @@ from src.calendar_scraper import fetch_calendar
 from src.content_scraper import fetch_content
 from src.scorer import score_and_rank
 from src.synthesizer import haiku_prefilter, synthesize
-from src.chart import select_chart, generate_chart
+from src.chart import select_chart, generate_chart, resolve_chart
 from src.delivery import (
     send_module, send_chart,
     format_module_2, format_module_5, format_module_6,
@@ -120,15 +120,14 @@ def main() -> None:
         content_items = get_content_fallback(sources)
         module2_news = []
 
-    # ── Module 4: Chart selection ──────────────────────────────────────────
-    chart_bytes = None
-    chart_caption = ""
+    # ── Module 4: Rules-based event check (passed to synthesis as context) ──
+    rules_chart_asset = "2s10s Spread"
+    rules_ticker = None
+    rules_lookback = 180
     try:
-        chart_asset, chart_ticker, lookback = select_chart(market_data, active_positions)
-        chart_bytes = generate_chart(chart_asset, chart_ticker, lookback)
+        rules_chart_asset, rules_ticker, rules_lookback = select_chart(market_data, active_positions)
     except Exception as e:
         admin_alert("chart", e)
-        chart_asset = "yield curve"
 
     # ── Synthesis: single Claude call for modules 2, 4 caption, 5, 6 ──────
     try:
@@ -139,7 +138,7 @@ def main() -> None:
             regime_items=regime_items,
             module2_news=module2_news,
             positions=positions,
-            chart_asset=chart_asset,
+            rules_chart_asset=rules_chart_asset,
             citation_item=citation_item,
         )
         synthesis = validate_output(synthesis)
@@ -149,6 +148,17 @@ def main() -> None:
         print(f"Synthesis failed: {type(e).__name__}: {e}", file=sys.stderr)
         traceback.print_exc()
         sys.exit(1)
+
+    # ── Module 4: Resolve final chart asset + generate ────────────────────
+    chart_bytes = None
+    chart_asset, chart_ticker, chart_lookback = resolve_chart(
+        synthesis.get("module_4_chart_asset", ""),
+        rules_chart_asset, rules_ticker, rules_lookback,
+    )
+    try:
+        chart_bytes = generate_chart(chart_asset, chart_ticker, chart_lookback)
+    except Exception as e:
+        admin_alert("chart", e)
 
     # ── Delivery: one section at a time ───────────────────────────────────
     modules_sent: list[int] = []

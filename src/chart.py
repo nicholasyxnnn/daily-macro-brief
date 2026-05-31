@@ -16,24 +16,39 @@ import yfinance as yf
 
 from src.market_data import MarketDashboard
 
-# Ticker map for chart generation (name → yfinance symbol)
-CHART_TICKERS: dict[str, str] = {
-    "USD/JPY":  "JPY=X",
-    "Gold":     "GC=F",
-    "EM Debt":  "EMB",       # iShares EM Bond ETF as proxy
-    "US 10Y":   "^TNX",
-    "SPY":      "SPY",
-    "VIX":      "^VIX",
-    "DXY":      "DX-Y.NYB",
-    "2s10s":    None,        # computed from TNX + DGS2
+# Valid chart options: name → (yfinance ticker | None, lookback days)
+# None ticker = computed series (e.g. 2s10s via FRED)
+# Keep in sync with the chart choices shown to Claude in synthesizer.py
+CHART_OPTIONS: dict[str, tuple[Optional[str], int]] = {
+    "USD/JPY":      ("JPY=X",      90),
+    "Gold":         ("GC=F",       90),
+    "US 10Y":       ("^TNX",       180),
+    "2s10s Spread": (None,         180),
+    "VIX":          ("^VIX",       30),
+    "DXY":          ("DX-Y.NYB",   90),
+    "SPY":          ("SPY",        90),
+    "EM Debt":      ("EMB",        90),
 }
 
 STD_DEV_WINDOW = 60  # days for overnight std dev calculation
 
 
+def resolve_chart(
+    claude_pick: str,
+    rules_asset: str,
+    rules_ticker: Optional[str],
+    rules_lookback: int,
+) -> tuple[str, Optional[str], int]:
+    """Use Claude's chart pick if valid; otherwise fall back to rules-based selection."""
+    if claude_pick and claude_pick in CHART_OPTIONS:
+        ticker, lookback = CHART_OPTIONS[claude_pick]
+        return claude_pick, ticker, lookback
+    return rules_asset, rules_ticker, rules_lookback
+
+
 def _overnight_std_devs(name: str, raw: dict) -> float:
     """Estimate how many std devs last night's move was, using 60-day rolling."""
-    ticker_sym = CHART_TICKERS.get(name)
+    ticker_sym = (CHART_OPTIONS.get(name) or (None, None))[0]
     if not ticker_sym:
         return 0.0
     try:
@@ -66,9 +81,10 @@ def select_chart(
 
     # 1. Position-tagged asset that moved significantly
     candidates = [
-        ("USD/JPY", "JPY=X", 90),
-        ("Gold",    "GC=F",  90),
-        ("SPY",     "SPY",   90),
+        ("USD/JPY", "JPY=X",  90),
+        ("Gold",    "GC=F",   90),
+        ("US 10Y",  "^TNX",   180),
+        ("SPY",     "SPY",    90),
     ]
     for name, sym, lookback in candidates:
         if name in position_names or any(name in p["asset"] for p in positions):

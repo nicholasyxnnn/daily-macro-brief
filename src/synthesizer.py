@@ -102,7 +102,7 @@ def synthesize(
     calendar_data: CalendarData,
     content_items: list[ContentItem],
     positions: dict,
-    chart_asset: str,
+    rules_chart_asset: str = "2s10s Spread",
     regime_items: list[ContentItem] = None,
     module2_news: list[ContentItem] = None,
     citation_item: Optional[ContentItem] = None,
@@ -133,8 +133,9 @@ def synthesize(
         f"{_format_regime_context(regime_items or [])}\n\n"
         f"## Current Market News (Module 2 context — what markets are reporting)\n"
         f"{_format_news_context(module2_news or [])}\n\n"
-        f"## Chart Selected\n"
-        f"Asset: {chart_asset} (rules-based selection, already determined)\n\n"
+        f"## Chart Selection\n"
+        f"Rules-based event trigger: {rules_chart_asset}\n"
+        f"Available options: USD/JPY, Gold, US 10Y, 2s10s Spread, VIX, DXY, SPY, EM Debt\n\n"
         f"## Non-Mainstream Analytical Content (Modules 5 & 6 — Substacks + Exa discovery)\n"
         f"{_format_content_items(content_items)}"
         f"{citation_block}\n\n"
@@ -144,7 +145,11 @@ def synthesize(
         f"  Module 2: Use market data + news context + calendar to identify the 3 things that "
         f"actually changed overnight and matter for this specific book. State the implication, "
         f"not the event. Numbers must come from market data above.\n"
-        f"  Module 4: What does this chart imply about the current regime and PM's positioning?\n"
+        f"  Module 4: Select the single most insightful chart for today given the market context "
+        f"and book. The rules-based trigger above fires on large moves — confirm it if correct, "
+        f"or pick a different option if another chart tells a better story. On quiet days, choose "
+        f"what best contextualizes the current macro regime for this book. "
+        f"Write a caption ≤30 words: what it shows and why it matters now.\n"
         f"  Module 5: From the non-mainstream content above, select the 3 items with genuine "
         f"non-consensus signal for the book. Write the book implication from your own analytical "
         f"read — not a paraphrase of the source. Exa and Substack items are your primary material.\n"

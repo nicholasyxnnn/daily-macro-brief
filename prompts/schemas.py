@@ -25,8 +25,9 @@ OUTPUT_SCHEMA = """
     </item>
   </module_2>
 
-  <!-- Module 4: Caption for dynamically selected chart. Exactly ≤30 words. -->
+  <!-- Module 4: Select the chart and write a caption ≤30 words. -->
   <module_4>
+    <chart_asset>Exact name: USD/JPY | Gold | US 10Y | 2s10s Spread | VIX | DXY | SPY | EM Debt</chart_asset>
     <caption>Chart caption here — ≤30 words, Bloomberg style.</caption>
   </module_4>
 
@@ -92,6 +93,7 @@ def parse_synthesis(xml_text: str) -> dict:
     # Module 4
     m4 = root.find("module_4")
     if m4 is not None:
+        result["module_4_chart_asset"] = _text(m4, "chart_asset")
         result["module_4_caption"] = _text(m4, "caption")
 
     # Module 5
