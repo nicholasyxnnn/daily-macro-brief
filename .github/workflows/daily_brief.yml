@@ -1,0 +1,39 @@
+name: Daily Macro Brief
+
+on:
+  schedule:
+    - cron: '0 11 * * 1-5'  # 6am ET (11am UTC), weekdays only
+  workflow_dispatch:          # manual trigger for testing
+
+jobs:
+  run_brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run brief
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+        run: python main.py
+
+      - name: Upload state on failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: run-state
+          path: state/

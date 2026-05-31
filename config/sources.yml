@@ -1,0 +1,72 @@
+# sources.yml — curated source registry for Module 5 (Theme Radar)
+# Tiers: tier_1 = central banks (highest signal), tier_2 = institutional/independent
+
+central_banks:
+  - name: Federal Reserve Speeches
+    rss: https://www.federalreserve.gov/feeds/speeches.xml
+    credibility: tier_1
+    always_include: true
+
+  - name: ECB Publications
+    rss: https://www.ecb.europa.eu/rss/fsr.html
+    credibility: tier_1
+
+  - name: BIS Working Papers
+    rss: https://www.bis.org/doclist/wppubls.rss
+    credibility: tier_1
+
+  - name: BOJ Speeches
+    rss: https://www.boj.or.jp/en/rss/release.xml
+    credibility: tier_1
+
+buyside:
+  - name: PIMCO Blog
+    rss: https://www.pimco.com/rss/feeds/blog.xml
+    credibility: tier_2
+    position_tags: [rates, duration, EM]
+
+  - name: Hoisington Quarterly
+    url: https://hoisington.com/economic_overview.html
+    credibility: tier_2
+    scrape_frequency: quarterly
+    position_tags: [duration, deflation]
+
+  - name: GMO Letters
+    url: https://www.gmo.com/americas/research-library/
+    credibility: tier_2
+    scrape_frequency: monthly
+
+independent:
+  - name: Lyn Alden
+    rss: https://www.lynalden.com/feed/
+    credibility: tier_2
+    position_tags: [gold, dollar, fiscal, EM]
+
+  - name: Doomberg
+    rss: https://doomberg.substack.com/feed
+    credibility: tier_2
+    position_tags: [energy, commodities]
+
+  - name: Macro Alf (Alfonso Peccatiello)
+    rss: https://themacrocompass.substack.com/feed
+    credibility: tier_2
+    position_tags: [rates, macro]
+
+  - name: Adam Tooze Chartbook
+    rss: https://adamtooze.substack.com/feed
+    credibility: tier_2
+    position_tags: [geopolitics, fiscal, EM]
+
+  - name: Concoda
+    rss: https://concoda.substack.com/feed
+    credibility: tier_2
+    position_tags: [dollar, liquidity]
+
+twitter:
+  - handle: LukeGromen
+    nitter_url: https://nitter.net/LukeGromen/rss
+    position_tags: [dollar, gold, fiscal]
+
+  - handle: JeffSnider_AIP
+    nitter_url: https://nitter.net/JeffSnider_AIP/rss
+    position_tags: [dollar, eurodollar, rates]

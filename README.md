@@ -1,2 +1,143 @@
 # daily-macro-brief
-Automated daily macro brief agent for institutional PM
+
+Automated daily macro brief agent for institutional PMs. Runs every weekday at 6am ET via GitHub Actions. Delivers a structured, synthesis-first brief to Telegram — market dashboard, 3 things that matter, economic calendar, one chart, theme radar from non-mainstream sources, and a contrarian corner.
+
+**Cost: ~$0.023/day (~$0.46/month on weekdays).**
+
+---
+
+## What it produces
+
+| Module | Content | Constraint |
+|--------|---------|------------|
+| 1 | Overnight market dashboard — equities, rates, FX, commodities, BTC | Table only, no LLM |
+| 2 | 3 things that matter today | Each ≤80 words with explicit "so what for the book" |
+| 3 | Economic calendar — Asia/EU/US sessions with consensus estimates | Table only, no LLM |
+| 4 | One chart — dynamically selected by rules, not LLM | Caption ≤30 words |
+| 5 | Theme radar — 3 deep-content summaries from non-mainstream sources | Source + link + summary + book implication |
+| 6 | Contrarian corner | 50-100 words on a narrative the market isn't pricing |
+
+---
+
+## Architecture
+
+```
+GitHub Actions (6am ET, weekdays)
+  → main.py (orchestrator, isolated try/except per module)
+      → market_data.py      yfinance + FRED
+      → calendar_scraper.py ForexFactory → TradingEconomics fallback
+      → content_scraper.py  RSS + Nitter (14 curated sources)
+      → scorer.py           Pure Python relevance ranking (zero token cost)
+      → synthesizer.py      Haiku prefilter + single Sonnet call (prompt cached)
+      → chart.py            Rules-based selection + matplotlib
+      → delivery.py         Sectioned Telegram messages
+```
+
+LLM is used for synthesis and writing only. All market data and numbers come from real APIs. Claude never generates prices or rates.
+
+---
+
+## Setup
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/YOUR_USERNAME/daily-macro-brief
+cd daily-macro-brief
+pip install -r requirements.txt
+```
+
+### 2. Get API keys
+
+| Key | Where | Cost |
+|-----|-------|------|
+| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | ~$0.023/day |
+| `TELEGRAM_BOT_TOKEN` | [@BotFather](https://t.me/BotFather) on Telegram | Free |
+| `TELEGRAM_CHAT_ID` | [@userinfobot](https://t.me/userinfobot) on Telegram | Free |
+| `TELEGRAM_ADMIN_CHAT_ID` | Same as above (can be same as CHAT_ID) | Free |
+| `FRED_API_KEY` | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/api_key.html) | Free |
+
+### 3. Add secrets to GitHub
+
+```
+Settings → Secrets and variables → Actions → New repository secret
+```
+
+Add each key from the table above.
+
+### 4. Update your positions
+
+Edit `config/positions.yml` whenever your book changes. The agent reads it fresh every morning.
+
+```yaml
+positions:
+  - asset: USD/JPY
+    direction: long
+    conviction: high
+    theme: BOJ policy divergence vs Fed
+    tags: [JPY, BOJ, rates, FX]
+```
+
+---
+
+## Running manually
+
+```bash
+export ANTHROPIC_API_KEY=...
+export TELEGRAM_BOT_TOKEN=...
+export TELEGRAM_CHAT_ID=...
+export FRED_API_KEY=...
+
+python main.py
+```
+
+Or trigger a run from the GitHub Actions tab using **workflow_dispatch**.
+
+---
+
+## File structure
+
+```
+daily-macro-brief/
+├── .github/workflows/daily_brief.yml   # Cron: 6am ET weekdays
+├── src/
+│   ├── market_data.py                  # Module 1 — yfinance + FRED
+│   ├── calendar_scraper.py             # Module 3 — ForexFactory
+│   ├── content_scraper.py              # Module 5 data — RSS + Nitter
+│   ├── scorer.py                       # Relevance ranking (pure Python)
+│   ├── synthesizer.py                  # Claude API — Haiku + Sonnet
+│   ├── chart.py                        # Module 4 — dynamic chart selection
+│   ├── delivery.py                     # Telegram formatter + sender
+│   ├── fallbacks/                      # Stale cache + placeholder fallbacks
+│   ├── validators/                     # Scrape shape + Claude output checks
+│   └── monitoring/                     # Silent failure alerts to admin channel
+├── prompts/schemas.py                  # XML output contracts
+├── config/
+│   ├── positions.yml                   # PM's current book — edit daily
+│   └── sources.yml                     # 14 curated sources across 4 tiers
+├── config.py                           # Settings + env var loader
+├── main.py                             # Orchestrator
+├── CLAUDE.md                           # Persistent LLM system context
+├── requirements.txt
+└── costs.md                            # Detailed cost breakdown
+```
+
+---
+
+## Reliability
+
+- Each module runs in an isolated `try/except` — one failure cannot cascade
+- Fallback chain per module: live data → cached stale data → static placeholder
+- Claude output validated before delivery; missing modules get placeholder text
+- State file (`state/run_state.json`) prevents duplicate briefs on retry runs
+- Admin alerts sent silently to a separate Telegram channel on any module failure
+
+---
+
+## V2 ideas
+
+- Position drift detection — flag positions not updated in >14 days
+- Weekly PnL attribution — link market moves to stated positions
+- Source feedback loop — Telegram reactions (👍/👎) adjust scorer weights
+- Real portfolio sync via IBKR / Bloomberg PORT API
+- Embedding-based novelty scoring against 30-day rolling corpus

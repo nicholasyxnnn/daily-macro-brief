@@ -1,0 +1,32 @@
+# positions.yml — update whenever book changes
+# Last updated: 2026-05-31
+
+positions:
+  - asset: USD/JPY
+    direction: long
+    conviction: high
+    theme: BOJ policy divergence vs Fed
+    tags: [JPY, BOJ, rates, FX]
+
+  - asset: Gold
+    direction: long
+    conviction: medium
+    theme: Real rate sensitivity, de-dollarization
+    tags: [gold, real_rates, dollar, inflation]
+
+  - asset: EM Debt (Brazil, India, Indonesia)
+    direction: long
+    conviction: medium
+    theme: EM carry + reform stories
+    tags: [EM, rates, carry, BRL, INR, IDR]
+
+  - asset: US 10Y
+    direction: short
+    conviction: high
+    theme: Fiscal supply concern, term premium repricing
+    tags: [rates, duration, UST, fiscal]
+
+watching:
+  - theme: European defense / energy rotation
+    tags: [Europe, defense, energy, geopolitics]
+    position: none
