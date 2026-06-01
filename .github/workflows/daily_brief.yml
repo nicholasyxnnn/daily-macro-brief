@@ -1,7 +1,10 @@
+# Scheduling: triggered daily at 5:30pm HKT (09:30 UTC) via cron-job.org
+# cron-job.org POSTs to the workflow_dispatch API — GitHub Actions native cron
+# was replaced due to reliability issues with low-traffic repositories.
 name: Daily Macro Brief
 
 on:
-  workflow_dispatch:          # triggered externally via cron-job.org at 10:00 UTC (6pm HKT)
+  workflow_dispatch:          # triggered externally via cron-job.org at 09:30 UTC (5:30pm HKT)
 
 jobs:
   run_brief:
