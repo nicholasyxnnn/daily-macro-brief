@@ -1,9 +1,7 @@
 name: Daily Macro Brief
 
 on:
-  schedule:
-    - cron: '0 8 * * *'  # 4pm HKT daily (08:00 UTC)
-  workflow_dispatch:          # manual trigger for testing
+  workflow_dispatch:          # triggered externally via cron-job.org at 10:00 UTC (6pm HKT)
 
 jobs:
   run_brief:
