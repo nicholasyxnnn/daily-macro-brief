@@ -1,32 +1,162 @@
-# positions.yml — update whenever book changes
-# Last updated: 2026-05-31
+# Macro Portfolio — Static Position Registry
+# Edit this file when positions change.
+# P&L, prices, and marks are computed daily by the agent.
+
+meta:
+  aum_mm: 100
+  currency: USD
+  last_updated: "2026-06-01"
+
+house_view:
+  narrative: >
+    Late-cycle expansion cracking unevenly. US slowing but not in recession;
+    Fed on hold as services inflation remains sticky. Europe weaker with ECB
+    cutting. BoJ normalizing slowly. Divergence drives USD strength.
+    Bear duration on sticky inflation and elevated supply. Gold as structural
+    hedge on EM reserve diversification and de-dollarization flows.
+    Stagflation-lite base case: growth disappoints but inflation stays high
+    enough to keep central banks cautious.
+  themes:
+    - USD strength
+    - Bear duration
+    - Long gold / real assets
+    - Energy tactical long
+    - Recession risk H2 2026
+    - EM selectivity
 
 positions:
-  - asset: USD/JPY
+  - id: fx_usdjpy
+    name: Long USD/JPY
+    bucket: fx
     direction: long
+    notional_mm: 12
     conviction: high
-    theme: BOJ policy divergence vs Fed
-    tags: [JPY, BOJ, rates, FX]
+    theme: USD strength
+    instrument: USDJPY
+    entry_price: 149.80
+    tags: [fx, usd, jpy, currency, boj, japan]
 
-  - asset: Gold
-    direction: long
-    conviction: medium
-    theme: Real rate sensitivity, de-dollarization
-    tags: [gold, real_rates, dollar, inflation]
-
-  - asset: EM Debt (Brazil, India, Indonesia)
-    direction: long
-    conviction: medium
-    theme: EM carry + reform stories
-    tags: [EM, rates, carry, BRL, INR, IDR]
-
-  - asset: US 10Y
+  - id: fx_eurusd
+    name: Short EUR/USD
+    bucket: fx
     direction: short
+    notional_mm: 10
     conviction: high
-    theme: Fiscal supply concern, term premium repricing
-    tags: [rates, duration, UST, fiscal]
+    theme: USD strength
+    instrument: EURUSD
+    entry_price: 1.0820
+    tags: [fx, usd, eur, euro, ecb, europe, currency]
 
-watching:
-  - theme: European defense / energy rotation
-    tags: [Europe, defense, energy, geopolitics]
-    position: none
+  - id: fx_dxy
+    name: Long DXY basket
+    bucket: fx
+    direction: long
+    notional_mm: 6
+    conviction: medium
+    theme: USD strength
+    instrument: DX=F
+    entry_price: 104.50
+    tags: [fx, usd, dxy, dollar, currency]
+
+  - id: fx_audusd
+    name: Short AUD/USD
+    bucket: fx
+    direction: short
+    notional_mm: 4
+    conviction: medium
+    theme: USD strength
+    instrument: AUDUSD
+    entry_price: 0.6520
+    tags: [fx, aud, usd, australia, rba, china, commodity_currency]
+
+  - id: rates_ust10
+    name: Short UST 10yr
+    bucket: rates
+    direction: short
+    notional_mm: 14
+    conviction: high
+    theme: Bear duration
+    instrument: ZN=F
+    entry_price: 109.50
+    tags: [rates, treasuries, duration, bonds, fed, yields, inflation]
+
+  - id: rates_bund10
+    name: Short Bund 10yr
+    bucket: rates
+    direction: short
+    notional_mm: 8
+    conviction: medium
+    theme: Bear duration
+    instrument: FGBL=F
+    entry_price: 131.20
+    tags: [rates, bunds, duration, bonds, ecb, europe, yields]
+
+  - id: rates_steepener
+    name: Long 2s10s steepener USD
+    bucket: rates
+    direction: long
+    notional_mm: 6
+    conviction: medium
+    theme: Recession risk H2 2026
+    instrument: spread_2s10s
+    entry_spread_bps: -18
+    tags: [rates, curve, steepener, recession, duration, fed, yields]
+
+  - id: cmdty_gold
+    name: Long Gold
+    bucket: commodities
+    direction: long
+    notional_mm: 14
+    conviction: high
+    theme: Long gold / real assets
+    instrument: GC=F
+    entry_price: 2320.00
+    tags: [gold, commodities, real_assets, em, dedollarization, inflation, haven]
+
+  - id: cmdty_brent
+    name: Long Brent crude
+    bucket: commodities
+    direction: long
+    notional_mm: 5
+    conviction: low
+    theme: Energy tactical long
+    instrument: BZ=F
+    entry_price: 83.40
+    tags: [oil, energy, commodities, brent, opec, geopolitics]
+
+  - id: cmdty_copper
+    name: Long copper
+    bucket: commodities
+    direction: long
+    notional_mm: 3
+    conviction: low
+    theme: Energy tactical long
+    instrument: HG=F
+    entry_price: 4.12
+    tags: [copper, commodities, china, industrial, metals]
+
+  - id: em_carry
+    name: EM FX carry basket BRL/ZAR/IDR
+    bucket: em_credit
+    direction: long
+    notional_mm: 10
+    conviction: medium
+    theme: EM selectivity
+    instrument: basket
+    components: [USDBRL, USDZAR, USDIDR]
+    entry_prices:
+      USDBRL: 5.02
+      USDZAR: 18.45
+      USDIDR: 15820
+    tags: [em, fx, carry, brl, zar, idr, brazil, southafrica, indonesia]
+
+  - id: em_hy_hedge
+    name: Short EM HY sovereign CDS hedge
+    bucket: em_credit
+    direction: short
+    notional_mm: 8
+    conviction: medium
+    theme: EM selectivity
+    instrument: CDX_EM
+    entry_spread_bps: 285
+    tags: [em, credit, cds, sovereign, hedge, spreads]

@@ -51,12 +51,16 @@ def _format_positions(positions: dict) -> str:
     lines = ["## Current Book"]
     for p in positions.get("positions", []):
         lines.append(
-            f"- {p['asset']}: {p['direction'].upper()} | conviction={p['conviction']} | "
-            f"theme: {p['theme']} | tags: {', '.join(p['tags'])}"
+            f"- {p['name']}: {p['direction'].upper()} | conviction={p['conviction']} | "
+            f"theme: {p['theme']} | tags: {', '.join(p.get('tags', []))}"
         )
-    lines.append("\n## Watching")
-    for w in positions.get("watching", []):
-        lines.append(f"- {w['theme']} | tags: {', '.join(w['tags'])}")
+    hv = positions.get("house_view", {})
+    if hv:
+        lines.append("\n## House View")
+        lines.append(hv.get("narrative", "").strip())
+        themes = hv.get("themes", [])
+        if themes:
+            lines.append(f"Themes: {', '.join(themes)}")
     return "\n".join(lines)
 
 
