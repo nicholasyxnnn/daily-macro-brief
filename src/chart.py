@@ -165,16 +165,25 @@ def select_chart(
 
 def generate_chart(asset_name: str, ticker: Optional[str], lookback_days: int = 90) -> bytes:
     """Generate a Bloomberg-aesthetic PNG chart and return bytes."""
+    import traceback as _tb
     end = datetime.today()
     start = end - timedelta(days=max(lookback_days, 365) + 15)
 
-    series, ylabel, title = _fetch_series(asset_name, ticker, start, end)
-    series = series.dropna().iloc[-lookback_days:]
-
-    # 1yr average line — fetch extra history for the avg calculation
-    full, _, _ = _fetch_series(asset_name, ticker, end - timedelta(days=380), end)
+    print(f"[CHART] Fetching {asset_name} (ticker={ticker}, lookback={lookback_days}d)", flush=True)
+    try:
+        full, ylabel, title = _fetch_series(asset_name, ticker, start, end)
+    except Exception:
+        print(f"[CHART] _fetch_series failed:\n{_tb.format_exc()}", flush=True)
+        raise
     full = full.dropna()
+    print(f"[CHART] Got {len(full)} data points", flush=True)
+
+    if len(full) == 0:
+        raise ValueError(f"No data returned for {asset_name}")
+
+    # Compute 1yr avg from the full fetch — no second API call needed
     yr_avg = float(full.iloc[-365:].mean()) if len(full) >= 30 else None
+    series = full.iloc[-lookback_days:]
 
     fig, ax = plt.subplots(figsize=(10, 4))
     fig.patch.set_facecolor("#0d1117")

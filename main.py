@@ -159,6 +159,8 @@ def main() -> None:
         chart_bytes = generate_chart(chart_asset, chart_ticker, chart_lookback)
     except Exception as e:
         admin_alert("chart", e)
+        print(f"[CHART FAILED] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+        traceback.print_exc()
 
     # ── Delivery: one section at a time ───────────────────────────────────
     modules_sent: list[int] = []
