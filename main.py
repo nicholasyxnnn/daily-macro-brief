@@ -92,17 +92,18 @@ def main() -> None:
         # tier_2 (Substacks+Exa) → Theme Radar candidates (Modules 5+6)
         # citation_count >= 2     → Contrarian Corner input
         regime_items = [i for i in valid_items if i.source_tier == "tier_1"]
-        module2_news = [i for i in valid_items if i.source_tier == "news"]
+        m2_exa_items = [i for i in valid_items if i.source_tier == "m2_exa"]
+        module2_news = m2_exa_items or [i for i in valid_items if i.source_tier == "news"]
         citation_items = [i for i in valid_items if i.citation_count >= 2]
         citation_item = max(citation_items, key=lambda x: x.citation_count, default=None)
 
         theme_candidates = [
             i for i in valid_items
-            if i.source_tier not in ("tier_1", "news") and i.citation_count == 0
+            if i.source_tier not in ("tier_1", "news", "m2_exa") and i.citation_count == 0
         ]
         # If no tier_2 content (Substacks + Exa quiet), fall back to all non-news items
         if not theme_candidates:
-            theme_candidates = [i for i in valid_items if i.source_tier not in ("news",) and i.citation_count == 0]
+            theme_candidates = [i for i in valid_items if i.source_tier not in ("news", "m2_exa") and i.citation_count == 0]
 
         scored_items = score_and_rank(theme_candidates, active_positions)
 
@@ -168,11 +169,11 @@ def main() -> None:
         send_module("OVERNIGHT DASHBOARD", market_data.format_telegram())
         modules_sent.append(1)
 
-        send_module("3 THINGS THAT MATTER TODAY", format_module_2(synthesis["module_2"]))
-        modules_sent.append(2)
-
         send_module("TODAY'S CALENDAR", calendar_data.format_telegram())
         modules_sent.append(3)
+
+        send_module("3 THINGS THAT MATTER TODAY", format_module_2(synthesis["module_2"]))
+        modules_sent.append(2)
 
         if chart_bytes:
             send_chart(chart_bytes, chart_caption)

@@ -394,7 +394,112 @@ def _fetch_layer3_citations(
     return items
 
 
-# ── NewsAPI — Module 2 context ────────────────────────────────────────────────
+# ── Exa — Module 2 context ───────────────────────────────────────────────────
+
+def _build_m2_exa_queries(market_data) -> list[str]:
+    """2 queries focused on what happened overnight and why — not anti-consensus framing."""
+    movers = _extract_top_movers(market_data)
+    regime = _detect_regime(market_data)
+    queries = []
+
+    if movers:
+        top = movers[0]
+        if (pct := top.get("pct_change")) is not None:
+            direction = "higher" if pct > 0 else "lower"
+            queries.append(
+                f"{top['name']} moved {abs(pct):.1f}% {direction} overnight. "
+                f"What is driving this? Recent independent analysis, not news headlines."
+            )
+        elif (bp := top.get("bp_change")) is not None:
+            direction = "higher" if bp > 0 else "lower"
+            queries.append(
+                f"{top['name']} moved {abs(bp):.0f}bp {direction} overnight. "
+                f"What is driving this? Recent independent analysis, not news headlines."
+            )
+
+    queries.append(
+        f"What changed in macro markets overnight given {regime}. "
+        f"Independent analytical coverage of recent market moves. Not mainstream news."
+    )
+
+    return queries
+
+
+def _fetch_layer2_exa_m2(market_data, api_key: str) -> list[ContentItem]:
+    """Module 2 Exa sourcing: what happened overnight and why, from independent sources."""
+    if not api_key or market_data is None:
+        return []
+    try:
+        from exa_py import Exa
+    except ImportError:
+        return []
+
+    queries = _build_m2_exa_queries(market_data)
+    since = (datetime.now(timezone.utc) - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    seen_urls: set[str] = set()
+    items: list[ContentItem] = []
+
+    try:
+        exa = Exa(api_key=api_key)
+        for query in queries:
+            try:
+                results = exa.search_and_contents(
+                    query,
+                    type="neural",
+                    num_results=4,
+                    start_published_date=since,
+                    text=True,
+                    highlights=True,
+                    exclude_domains=MAINSTREAM_EXCLUDE,
+                )
+            except Exception:
+                continue
+
+            for r in results.results:
+                title = (getattr(r, "title", None) or "").strip()
+                url = (getattr(r, "url", None) or "").strip()
+                if not title or not url or url in seen_urls:
+                    continue
+                if any(m in url for m in MAINSTREAM_EXCLUDE):
+                    continue
+                seen_urls.add(url)
+
+                published = datetime.now(timezone.utc)
+                pub_date = getattr(r, "published_date", None)
+                if pub_date:
+                    try:
+                        published = datetime.fromisoformat(pub_date.replace("Z", "+00:00"))
+                    except ValueError:
+                        pass
+
+                raw_highlights = getattr(r, "highlights", None)
+                raw_text = getattr(r, "text", None)
+                if raw_highlights and isinstance(raw_highlights, list):
+                    summary = " ".join(str(h) for h in raw_highlights)
+                elif raw_text:
+                    summary = str(raw_text)[:1600]
+                else:
+                    summary = ""
+                words = summary.split()
+
+                items.append(ContentItem(
+                    title=title,
+                    url=url,
+                    source_name=urlparse(url).netloc.replace("www.", ""),
+                    source_tier="m2_exa",
+                    published=published,
+                    summary=" ".join(words[:400]),
+                    word_count=len(words),
+                    position_tags=[],
+                ))
+    except Exception:
+        return []
+
+    return items
+
+
+# ── NewsAPI — Module 2 fallback ───────────────────────────────────────────────
 
 def _fetch_newsapi(positions: list[dict], api_key: str) -> list[ContentItem]:
     """
@@ -482,10 +587,12 @@ def fetch_content(
     layer1 = _fetch_layer1(sources)
     layer2 = _fetch_layer2_exa(market_data, positions, cfg.EXA_API_KEY)
     layer3 = _fetch_layer3_citations(layer1, positions)
+    m2_exa = _fetch_layer2_exa_m2(market_data, cfg.EXA_API_KEY)
     news = _fetch_newsapi(positions, cfg.NEWSAPI_KEY)
 
     print(
-        f"[content] L1={len(layer1)} L2_exa={len(layer2)} L3_cite={len(layer3)} news={len(news)}",
+        f"[content] L1={len(layer1)} L2_exa={len(layer2)} L3_cite={len(layer3)} "
+        f"m2_exa={len(m2_exa)} news={len(news)}",
         flush=True,
     )
-    return layer1 + layer2 + layer3 + news
+    return layer1 + layer2 + layer3 + m2_exa + news
