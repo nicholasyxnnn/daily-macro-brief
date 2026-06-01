@@ -27,7 +27,7 @@ OUTPUT_SCHEMA = """
 
   <!-- Module 4: Select the chart and write a caption ≤30 words. -->
   <module_4>
-    <chart_asset>Exact name: USD/JPY | Gold | US 10Y | 2s10s Spread | VIX | DXY | SPY | EM Debt</chart_asset>
+    <chart_asset>Exact name from available options: USD/JPY | Gold | US 10Y | 2s10s Spread | VIX | DXY | SPY | EM Debt | Real Yield US 10Y | USD EM FX | Oil/Gold Ratio | Copper/Gold Ratio | US Financial Cond | Fed Funds Futures</chart_asset>
     <caption>Chart caption here — ≤30 words, Bloomberg style.</caption>
   </module_4>
 
