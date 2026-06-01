@@ -231,13 +231,3 @@ Estimated: **~$0.028/day · ~$0.56/month** (weekdays only)
 | `TELEGRAM_ADMIN_CHAT_ID` | Same as above | Free |
 | `FRED_API_KEY` | fred.stlouisfed.org/docs/api | Free |
 | `EXA_API_KEY` | exa.ai | Free tier (1,000 req/month) |
-
----
-
-## V2 Ideas
-
-- Position drift detection — flag positions not updated in >14 days
-- Weekly PnL attribution — link market moves to stated positions
-- Source quality feedback loop — Telegram reactions adjust scorer weights
-- Podcast transcription via Whisper — surface key segments from Macro Voices, Odd Lots
-- Real portfolio sync via IBKR / Bloomberg PORT API
