@@ -84,7 +84,7 @@ def _format_content_items(items: list[ContentItem]) -> str:
         parts.append(
             f"[CONTENT {i}]\n"
             f"Title: {item.title}\n"
-            f"Source: {item.source_name} ({item.source_tier})\n"
+            f"Source: {item.source_name}\n"
             f"URL: {item.url}\n"
             f"Excerpt: {item.summary[:400]}"
         )
