@@ -15,7 +15,7 @@ from src.calendar_scraper import fetch_calendar
 from src.content_scraper import fetch_content
 from src.scorer import score_and_rank
 from src.synthesizer import haiku_prefilter, synthesize
-from src.chart import select_chart, generate_chart, resolve_chart
+from src.chart import select_chart, generate_chart, resolve_chart, ContentSignal
 from src.delivery import (
     send_module, send_chart,
     format_module_2, format_module_5, format_module_6,
@@ -125,7 +125,7 @@ def main() -> None:
     rules_ticker = None
     rules_lookback = 180
     try:
-        rules_chart_asset, rules_ticker, rules_lookback = select_chart(market_data, active_positions)
+        rules_chart_asset, rules_ticker, rules_lookback = select_chart([], market_data, active_positions)
     except Exception as e:
         admin_alert("chart", e)
 

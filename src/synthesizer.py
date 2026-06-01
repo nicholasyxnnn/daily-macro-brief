@@ -12,6 +12,7 @@ from typing import Optional
 from src.content_scraper import ContentItem
 from src.market_data import MarketDashboard
 from src.calendar_scraper import CalendarData
+from src.chart import get_chart_menu
 
 _api_key = cfg.ANTHROPIC_API_KEY.strip()
 if not _api_key:
@@ -139,7 +140,9 @@ def synthesize(
         f"{_format_news_context(module2_news or [])}\n\n"
         f"## Chart Selection\n"
         f"Rules-based event trigger: {rules_chart_asset}\n"
-        f"Available options: USD/JPY, Gold, US 10Y, 2s10s Spread, VIX, DXY, SPY, EM Debt\n\n"
+        f"Available options:\n" +
+        "".join(f"  - {name}: {desc}\n" for name, desc in get_chart_menu().items()) +
+        "\n"
         f"## Non-Mainstream Analytical Content (Modules 5 & 6 — Substacks + Exa discovery)\n"
         f"{_format_content_items(content_items)}"
         f"{citation_block}\n\n"
