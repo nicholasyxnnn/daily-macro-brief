@@ -2,7 +2,7 @@ name: Daily Macro Brief
 
 on:
   schedule:
-    - cron: '0 22 * * *'  # 6am HKT daily (22:00 UTC prev day)
+    - cron: '0 6 * * *'  # 2pm HKT daily (06:00 UTC)
   workflow_dispatch:          # manual trigger for testing
 
 jobs:
