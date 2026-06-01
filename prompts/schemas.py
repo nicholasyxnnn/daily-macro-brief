@@ -73,8 +73,14 @@ def parse_synthesis(xml_text: str) -> dict:
         return {}
     try:
         root = ET.fromstring(match.group(0))
-    except ET.ParseError:
-        return {}
+    except ET.ParseError as e:
+        print(f"[WARN] XML parse failed ({e}), attempting sanitization...", flush=True)
+        sanitized = re.sub(r'&(?!(amp|lt|gt|apos|quot|#\d+);)', '&amp;', match.group(0))
+        try:
+            root = ET.fromstring(sanitized)
+        except ET.ParseError:
+            print(f"[ERROR] XML parse failed after sanitization. Raw (first 800 chars):\n{xml_text[:800]}", flush=True)
+            return {}
 
     result = {}
 

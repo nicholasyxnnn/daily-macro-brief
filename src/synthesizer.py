@@ -188,5 +188,5 @@ def synthesize(
     raw_xml = resp.content[0].text
     result = parse_synthesis(raw_xml)
     if not result:
-        print(f"[WARN] parse_synthesis returned empty. Raw response (first 500 chars):\n{raw_xml[:500]}", flush=True)
+        print(f"[WARN] parse_synthesis returned empty. Raw response (first 1000 chars):\n{raw_xml[:1000]}", flush=True)
     return result
