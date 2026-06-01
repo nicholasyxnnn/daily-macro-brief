@@ -145,7 +145,7 @@ that informs all module outputs, not the Theme Radar candidates.
 Lyn Alden, Joseph Wang (FedGuy), Luke Gromen (FFTT), CrossBorder Capital (Michael Howell),
 Andreas Steno Larsen, Adam Tooze Chartbook, Robin Brooks, Macro Alf (Alfonso Peccatiello)
 
-Independent, non-consensus analytical voices. Compete for Module 5 slots via scoring.
+Independent, non-consensus analytical voices that compete for Module 5 slots via scoring.
 
 ### Layer 2: Exa Semantic Discovery
 
@@ -158,7 +158,7 @@ Q3 = "Underpriced tail risks given {regime_characterization} — what isn't bein
 ```
 
 Regime is auto-detected from VIX level, yield curve shape, dollar direction, equity performance.
-Results enter the scorer alongside Substack items. Deduplicated by URL across all 3 queries.
+Results enter the scorer alongside Substack items and are deduplicated by URL across all 3 queries.
 
 ### Layer 3: Citation Graph
 
