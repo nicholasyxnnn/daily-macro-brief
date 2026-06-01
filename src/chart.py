@@ -246,18 +246,12 @@ def _fetch_series(
     if asset_name == "Oil/Gold Ratio":
         brent = yf.Ticker("BZ=F").history(start=start, end=end)["Close"].dropna()
         gold  = yf.Ticker("GC=F").history(start=start, end=end)["Close"].dropna()
-        ratio = (brent / gold).dropna()
-        ratio.index = pd.to_datetime(ratio.index).tz_localize(None)
-        return ratio, "Ratio", "Oil/Gold Ratio (Brent ÷ Gold)"
+        return (brent / gold).dropna(), "Ratio", "Oil/Gold Ratio (Brent ÷ Gold)"
     if asset_name == "Copper/Gold Ratio":
         copper = yf.Ticker("HG=F").history(start=start, end=end)["Close"].dropna()
         gold   = yf.Ticker("GC=F").history(start=start, end=end)["Close"].dropna()
-        ratio  = (copper / gold).dropna()
-        ratio.index = pd.to_datetime(ratio.index).tz_localize(None)
-        return ratio, "Ratio", "Copper/Gold Ratio"
-    hist = yf.Ticker(ticker).history(start=start, end=end)["Close"].dropna()
-    hist.index = pd.to_datetime(hist.index).tz_localize(None)
-    return hist, "Price", asset_name
+        return (copper / gold).dropna(), "Ratio", "Copper/Gold Ratio"
+    return yf.Ticker(ticker).history(start=start, end=end)["Close"].dropna(), "Price", asset_name
 
 
 def _fetch_fred_spread(start: datetime, end: datetime) -> pd.Series:
