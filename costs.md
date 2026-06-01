@@ -42,8 +42,8 @@ keeps output cost bounded regardless of prompt drift.
 | yfinance | Market prices | Free (Yahoo Finance) |
 | ForexFactory | Calendar scrape | Free (with rate limiting) |
 | Feedparser / RSS | Layer 1: 12 central bank feeds + 8 Substacks | Free |
-| Exa.ai | Layer 2: 3 semantic queries/day (~60 req/month) | Free tier (1,000 req/month) |
-| NewsAPI | Module 2 market context (news headlines) | Free tier (100 req/day) |
+| Exa.ai | Layer 2: 3 Theme Radar queries + 2 Module 2 queries/day (~100 req/month) | Free tier (1,000 req/month) |
+| NewsAPI | Module 2 fallback (used only if Exa returns nothing) | Free tier (100 req/day) |
 | FINNHUB API | Module 3 calendar — primary source | Free tier (60 req/min) |
 | Telegram Bot API | Delivery | Free |
 
