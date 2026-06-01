@@ -339,14 +339,14 @@ def _fetch_outbound_links(url: str) -> list[str]:
 
 
 def _fetch_layer3_citations(
-    layer1_items: list[ContentItem], positions: list[dict]
+    source_items: list[ContentItem], positions: list[dict]
 ) -> list[ContentItem]:
     """
-    Count how many Layer 1 articles link to the same external URL.
+    Count how many Layer 1 + Layer 2 articles link to the same external URL.
     URLs cited by 2+ independent sources surface as Contrarian Corner candidates.
     """
     citation_counts: Counter = Counter()
-    for item in layer1_items[:12]:
+    for item in source_items[:20]:
         for link in _fetch_outbound_links(item.url):
             p = urlparse(link)
             normalized = f"{p.scheme}://{p.netloc}{p.path}".rstrip("/")
@@ -586,7 +586,7 @@ def fetch_content(
     positions = positions or []
     layer1 = _fetch_layer1(sources)
     layer2 = _fetch_layer2_exa(market_data, positions, cfg.EXA_API_KEY)
-    layer3 = _fetch_layer3_citations(layer1, positions)
+    layer3 = _fetch_layer3_citations(layer1 + layer2, positions)
     m2_exa = _fetch_layer2_exa_m2(market_data, cfg.EXA_API_KEY)
     news = _fetch_newsapi(positions, cfg.NEWSAPI_KEY)
 
