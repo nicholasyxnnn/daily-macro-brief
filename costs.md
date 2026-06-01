@@ -47,8 +47,8 @@ keeps output cost bounded regardless of prompt drift.
 | FINNHUB API | Module 3 calendar — primary source | Free tier (60 req/min) |
 | Telegram Bot API | Delivery | Free |
 
-Layer 3 (citation tracking) makes HTTP requests to article pages — no API cost, ~15 requests
-per run, absorbed into existing network overhead.
+Layer 3 (citation tracking) makes HTTP requests to article pages — no API cost, ~23 requests
+per run (up to 20 source articles scanned + up to 3 cross-cited fetches), absorbed into existing network overhead.
 
 ## V2 Cost Considerations
 

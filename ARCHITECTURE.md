@@ -162,7 +162,7 @@ Results enter the scorer alongside Substack items and are deduplicated by URL ac
 
 ### Layer 3: Citation Graph
 
-Fetches outbound links from up to 12 Layer 1 articles. Counts how many independent sources
+Fetches outbound links from up to 20 Layer 1 + Layer 2 articles. Counts how many independent sources
 cite the same URL. URLs cited by 2+ sources surface as `citation_item` — passed directly
 to the synthesizer as a Contrarian Corner candidate, validated by multiple smart readers
 but not yet mainstream.
