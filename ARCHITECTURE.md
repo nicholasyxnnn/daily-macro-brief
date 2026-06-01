@@ -13,7 +13,7 @@ Automated daily macro brief for an institutional PM. Runs every morning before m
 | 1 | Overnight market dashboard — equities, rates, FX, commodities, BTC | Table only, no LLM |
 | 2 | 3 things that matter today | Each ≤80 words with explicit "so what for the book" |
 | 3 | Economic calendar — Asia/EU/US sessions with consensus estimates | Table only, no LLM |
-| 4 | One chart — dynamically selected by rules, not LLM | Caption ≤30 words |
+| 4 | One chart — LLM picks from 14 options guided by content signals; rules-based fallback | Caption ≤30 words |
 | 5 | Theme radar — 3 non-mainstream summaries tied to positions | Source + link + summary + book implication |
 | 6 | Contrarian corner | 50-100 words: Claude's own derived point of view, not a source summary |
 
@@ -24,7 +24,7 @@ Automated daily macro brief for an institutional PM. Runs every morning before m
 ## Architecture
 
 ```
-GitHub Actions (6:00am HKT, weekdays)
+cron-job.org → workflow_dispatch (6am HKT / 22:00 UTC, daily)
         ↓
 main.py — orchestrator, isolated try/except per module
         ↓
@@ -73,18 +73,24 @@ main.py — orchestrator, isolated try/except per module
 │    CLAUDE SONNET SYNTHESIS                 │
 │  Single API call for modules 2, 4, 5, 6   │
 │  Inputs (distinct roles):                  │
+│    house_view    → macro narrative/themes  │
 │    regime_items  → policy backdrop context │
 │    content_items → Theme Radar candidates  │
 │    citation_item → Contrarian Corner input │
+│    chart_menu    → 14 options + descriptions│
 │  Mandate: synthesize / select / explain    │
 │  Sources are inputs to thinking, not       │
 │  content to be rephrased                   │
 │  Prompt cached · max_tokens: 2000          │
+│  XML parse: sanitize-and-retry on bad &    │
 └───────────────────┬────────────────────────┘
                     ↓
 ┌────────────────────────────────────────────┐
 │    CHART + DELIVERY                        │
-│  chart.py — rules-based asset selection    │
+│  chart.py — 14 options, editorial-first    │
+│    selection: ContentSignal > moves >      │
+│    rotating default (4-day cycle)          │
+│    1yr avg line + date watermark           │
 │  delivery.py — sectioned Telegram messages │
 └────────────────────────────────────────────┘
 ```
@@ -95,7 +101,7 @@ main.py — orchestrator, isolated try/except per module
 
 ```
 daily-macro-brief/
-├── .github/workflows/daily_brief.yml   # Cron: 6am HKT weekdays
+├── .github/workflows/daily_brief.yml   # workflow_dispatch — triggered by cron-job.org at 6am HKT
 ├── src/
 │   ├── market_data.py                  # Module 1 — yfinance + FRED
 │   ├── calendar_scraper.py             # Module 3 — ForexFactory → TradingEconomics fallback

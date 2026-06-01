@@ -20,7 +20,7 @@ Sources are inputs to your thinking. Never paraphrase or regurgitate a source.
 - Bloomberg terminal tone: sparse, structured, high information density.
 
 ## House Positions
-Injected dynamically from positions.yml at runtime. Never hard-code.
+House view (macro narrative + themes) and individual positions injected dynamically from positions.yml at runtime. Never hard-code.
 
 ## Output Format
 Strict XML schema. Never deviate. Never add unrequested sections.
@@ -30,4 +30,4 @@ Schema definitions in prompts/schemas.py.
 - Module 2: 3 × 80 words max
 - Module 4: caption 30 words exactly
 - Module 5: 3 × 100 words max per summary + 1 line book implication
-- Module 6: 75 words max
+- Module 6: 50-100 words max

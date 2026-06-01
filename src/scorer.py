@@ -38,7 +38,7 @@ def score_content(item: ContentItem, positions: list[dict]) -> float:
 
     # Source tier bonus — tier_2 (Substacks, Exa) scores higher than tier_1 (central banks)
     # for the non-mainstream mandate: central banks are mainstream by definition for a macro PM
-    tier_bonus = {"tier_1": 2, "tier_2": 4, "tier_3": 0}
+    tier_bonus = {"tier_1": 2, "tier_2": 4}
     score += tier_bonus.get(item.source_tier, 0)
 
     return score

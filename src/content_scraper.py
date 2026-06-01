@@ -212,7 +212,7 @@ def _build_exa_queries(market_data, positions: list[dict]) -> list[str]:
     # Q2: What consensus is missing on high-conviction active positions
     high_conviction = [p for p in positions if p.get("conviction") == "high"]
     if high_conviction:
-        pos_desc = "; ".join(f"{p['asset']} ({p['theme']})" for p in high_conviction[:2])
+        pos_desc = "; ".join(f"{p['name']} ({p['theme']})" for p in high_conviction[:2])
         queries.append(
             f"Independent research on risks or non-consensus views for: {pos_desc}. "
             f"What is institutional consensus positioning getting wrong? "
@@ -405,7 +405,7 @@ def _fetch_newsapi(positions: list[dict], api_key: str) -> list[ContentItem]:
     if not api_key or not positions:
         return []
 
-    assets = [p.get("asset", "") for p in positions if p.get("asset")][:4]
+    assets = [p.get("name", "") for p in positions if p.get("name")][:4]
     query = " OR ".join(f'"{a}"' if " " in a else a for a in assets) if assets else "macro markets"
 
     from datetime import date, timedelta as _td

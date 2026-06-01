@@ -15,7 +15,7 @@ from src.calendar_scraper import fetch_calendar
 from src.content_scraper import fetch_content
 from src.scorer import score_and_rank
 from src.synthesizer import haiku_prefilter, synthesize
-from src.chart import select_chart, generate_chart, resolve_chart, ContentSignal
+from src.chart import select_chart, generate_chart, resolve_chart
 from src.delivery import (
     send_module, send_chart,
     format_module_2, format_module_5, format_module_6,

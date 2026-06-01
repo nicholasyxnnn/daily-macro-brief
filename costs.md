@@ -8,7 +8,7 @@
 | Market + calendar data | Sonnet | ~400 uncached | — | ~$0.001 |
 | Regime context + content excerpts | Sonnet | ~800 uncached | — | ~$0.002 |
 | Synthesis output | Sonnet | — | ~1,500 | ~$0.023 |
-| Haiku prefilter (×3) | Haiku | ~150 total | ~30 total | ~$0.001 |
+| Haiku prefilter (×6) | Haiku | ~300 total | ~60 total | ~$0.001 |
 | **Total** | | | | **~$0.028/day** |
 
 ## Monthly Projection
@@ -43,6 +43,8 @@ keeps output cost bounded regardless of prompt drift.
 | ForexFactory | Calendar scrape | Free (with rate limiting) |
 | Feedparser / RSS | Layer 1: 12 central bank feeds + 8 Substacks | Free |
 | Exa.ai | Layer 2: 3 semantic queries/day (~60 req/month) | Free tier (1,000 req/month) |
+| NewsAPI | Module 2 market context (news headlines) | Free tier (100 req/day) |
+| FINNHUB API | Module 3 calendar (reserved, not yet active) | Free tier (60 req/min) |
 | Telegram Bot API | Delivery | Free |
 
 Layer 3 (citation tracking) makes HTTP requests to article pages — no API cost, ~15 requests

@@ -1,8 +1,8 @@
 # daily-macro-brief
 
-Automated daily macro brief agent for institutional PMs. Runs every weekday at 6am HKT via GitHub Actions. Delivers a structured, synthesis-first brief to Telegram — market dashboard, 3 things that matter, economic calendar, one chart, theme radar from non-mainstream sources, and a contrarian corner.
+Automated daily macro brief agent for institutional PMs. Runs daily at 6am HKT (22:00 UTC) via cron-job.org → GitHub Actions workflow_dispatch. Delivers a structured, synthesis-first brief to Telegram — market dashboard, 3 things that matter, economic calendar, one chart, theme radar from non-mainstream sources, and a contrarian corner.
 
-**Cost: ~$0.023/day (~$0.46/month on weekdays).**
+**Cost: ~$0.028/day (~$0.56/month on weekdays).**
 
 ---
 
@@ -13,7 +13,7 @@ Automated daily macro brief agent for institutional PMs. Runs every weekday at 6
 | 1 | Overnight market dashboard — equities, rates, FX, commodities, BTC | Table only, no LLM |
 | 2 | 3 things that matter today | Each ≤80 words with explicit "so what for the book" |
 | 3 | Economic calendar — Asia/EU/US sessions with consensus estimates | Table only, no LLM |
-| 4 | One chart — dynamically selected by rules, not LLM | Caption ≤30 words |
+| 4 | One chart — LLM picks from 14 options guided by content signals | Caption ≤30 words |
 | 5 | Theme radar — 3 deep-content summaries from non-mainstream sources | Source + link + summary + book implication |
 | 6 | Contrarian corner | 50-100 words on a narrative the market isn't pricing |
 
@@ -22,14 +22,14 @@ Automated daily macro brief agent for institutional PMs. Runs every weekday at 6
 ## Architecture
 
 ```
-GitHub Actions (6am ET, weekdays)
+cron-job.org → workflow_dispatch (6am HKT / 22:00 UTC, daily)
   → main.py (orchestrator, isolated try/except per module)
       → market_data.py      yfinance + FRED
       → calendar_scraper.py ForexFactory → TradingEconomics fallback
-      → content_scraper.py  RSS + NewsAPI + GDELT (23 curated RSS sources)
+      → content_scraper.py  Three-layer: RSS (Layer 1) + Exa discovery (Layer 2) + citation graph (Layer 3)
       → scorer.py           Pure Python relevance ranking (zero token cost)
       → synthesizer.py      Haiku prefilter + single Sonnet call (prompt cached)
-      → chart.py            Rules-based selection + matplotlib
+      → chart.py            14 options, editorial selection + matplotlib
       → delivery.py         Sectioned Telegram messages
 ```
 
@@ -51,7 +51,7 @@ pip install -r requirements.txt
 
 | Key | Where | Cost |
 |-----|-------|------|
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | ~$0.023/day |
+| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | ~$0.028/day |
 | `TELEGRAM_BOT_TOKEN` | [@BotFather](https://t.me/BotFather) on Telegram | Free |
 | `TELEGRAM_CHAT_ID` | [@userinfobot](https://t.me/userinfobot) on Telegram | Free |
 | `TELEGRAM_ADMIN_CHAT_ID` | Same as above (can be same as CHAT_ID) | Free |
@@ -73,12 +73,26 @@ Add each key from the table above.
 Edit `config/positions.yml` whenever your book changes. The agent reads it fresh every morning.
 
 ```yaml
+meta:
+  aum_mm: 100
+  currency: USD
+
+house_view:
+  narrative: >
+    Your macro thesis here — injected into every synthesis call.
+  themes: [USD strength, Bear duration, Long gold / real assets]
+
 positions:
-  - asset: USD/JPY
+  - id: fx_usdjpy
+    name: Long USD/JPY
+    bucket: fx
     direction: long
+    notional_mm: 12
     conviction: high
-    theme: BOJ policy divergence vs Fed
-    tags: [JPY, BOJ, rates, FX]
+    theme: USD strength
+    instrument: USDJPY
+    entry_price: 149.80
+    tags: [fx, usd, jpy, currency, boj]
 ```
 
 ---
@@ -102,11 +116,11 @@ Or trigger a run from the GitHub Actions tab using **workflow_dispatch**.
 
 ```
 daily-macro-brief/
-├── .github/workflows/daily_brief.yml   # Cron: 6am ET weekdays
+├── .github/workflows/daily_brief.yml   # workflow_dispatch — triggered by cron-job.org at 6am HKT
 ├── src/
 │   ├── market_data.py                  # Module 1 — yfinance + FRED
 │   ├── calendar_scraper.py             # Module 3 — ForexFactory
-│   ├── content_scraper.py              # Module 5 data — RSS + NewsAPI + GDELT
+│   ├── content_scraper.py              # Module 5 data — three-layer content sourcing
 │   ├── scorer.py                       # Relevance ranking (pure Python)
 │   ├── synthesizer.py                  # Claude API — Haiku + Sonnet
 │   ├── chart.py                        # Module 4 — dynamic chart selection
@@ -118,7 +132,7 @@ daily-macro-brief/
 ├── prompts/schemas.py                  # XML output contracts
 ├── config/
 │   ├── positions.yml                   # PM's current book — edit daily
-│   └── sources.yml                     # 23 curated RSS sources across 4 tiers
+│   └── sources.yml                     # Layer 1 curated registry (central banks + Substacks)
 ├── config.py                           # Settings + env var loader
 ├── main.py                             # Orchestrator
 ├── CLAUDE.md                           # Persistent LLM system context
