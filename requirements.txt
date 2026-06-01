@@ -1,4 +1,5 @@
 anthropic>=0.40.0
+pandas>=2.0.0
 yfinance>=0.2.40
 fredapi>=0.5.1
 feedparser>=6.0.11
