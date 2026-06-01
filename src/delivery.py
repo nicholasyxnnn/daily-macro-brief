@@ -51,15 +51,34 @@ def send_chart(image_bytes: bytes, caption: str, chat_id: str = None) -> None:
     time.sleep(SEND_DELAY)
 
 
+def _trim_to_word_limit(headline: str, body: str, so_what: str, limit: int = 80) -> str:
+    """Trim body so headline + body + so_what stay within limit words."""
+    headline_words = len(headline.split())
+    so_what_words = len(so_what.split())
+    budget = limit - headline_words - so_what_words
+    if budget <= 0:
+        return ""
+    words = body.split()
+    if len(words) <= budget:
+        return body
+    # Trim to budget, ending on a complete sentence where possible
+    trimmed = " ".join(words[:budget])
+    last_stop = max(trimmed.rfind("."), trimmed.rfind("!"), trimmed.rfind("?"))
+    return trimmed[:last_stop + 1] if last_stop > len(trimmed) // 2 else trimmed + "…"
+
+
 def format_module_2(items: list[dict]) -> str:
     parts = []
     for i, item in enumerate(items, 1):
         if not item.get("headline") or not item.get("body"):
             continue
+        headline = item["headline"]
+        body = _trim_to_word_limit(headline, item["body"], item.get("so_what", ""))
+        so_what = item.get("so_what", "")
         parts.append(
-            f"<b>{i}. {item['headline']}</b>\n"
-            f"{item['body']}\n"
-            f"<i>→ {item['so_what']}</i>"
+            f"<b>{i}. {headline}</b>\n"
+            f"{body}\n"
+            f"<i>→ {so_what}</i>"
         )
     return "\n\n".join(parts) if parts else "[No items generated]"
 
