@@ -13,7 +13,7 @@ Automated daily macro brief agent for institutional PMs. Runs daily at 6am HKT (
 | 1 | Overnight market dashboard — equities, rates, FX, commodities, BTC | Table only, no LLM |
 | 2 | 3 things that matter today | Each ≤80 words with explicit "so what for the book" |
 | 3 | Economic calendar — Asia/EU/US sessions with consensus estimates | Table only, no LLM |
-| 4 | One chart — LLM picks from 14 options guided by content signals | Caption ≤30 words |
+| 4 | One chart — LLM picks from 14 options guided by content signals; rules-based fallback | Caption ≤30 words |
 | 5 | Theme radar — 3 deep-content summaries from non-mainstream sources | Source + link + summary + book implication |
 | 6 | Contrarian corner | 50-100 words on a narrative the market isn't pricing |
 
@@ -119,7 +119,7 @@ daily-macro-brief/
 ├── .github/workflows/daily_brief.yml   # workflow_dispatch — triggered by cron-job.org at 6am HKT
 ├── src/
 │   ├── market_data.py                  # Module 1 — yfinance + FRED
-│   ├── calendar_scraper.py             # Module 3 — ForexFactory
+│   ├── calendar_scraper.py             # Module 3 — Finnhub → ForexFactory → TradingEconomics
 │   ├── content_scraper.py              # Module 5 data — three-layer content sourcing
 │   ├── scorer.py                       # Relevance ranking (pure Python)
 │   ├── synthesizer.py                  # Claude API — Haiku + Sonnet
@@ -131,7 +131,7 @@ daily-macro-brief/
 │   └── monitoring/                     # Silent failure alerts to admin channel
 ├── prompts/schemas.py                  # XML output contracts
 ├── config/
-│   ├── positions.yml                   # PM's current book — edit daily
+│   ├── positions.yml                   # PM's current book — edit when book changes
 │   └── sources.yml                     # Layer 1 curated registry (central banks + Substacks)
 ├── config.py                           # Settings + env var loader
 ├── main.py                             # Orchestrator

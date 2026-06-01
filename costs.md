@@ -44,7 +44,7 @@ keeps output cost bounded regardless of prompt drift.
 | Feedparser / RSS | Layer 1: 12 central bank feeds + 8 Substacks | Free |
 | Exa.ai | Layer 2: 3 semantic queries/day (~60 req/month) | Free tier (1,000 req/month) |
 | NewsAPI | Module 2 market context (news headlines) | Free tier (100 req/day) |
-| FINNHUB API | Module 3 calendar (reserved, not yet active) | Free tier (60 req/min) |
+| FINNHUB API | Module 3 calendar — primary source | Free tier (60 req/min) |
 | Telegram Bot API | Delivery | Free |
 
 Layer 3 (citation tracking) makes HTTP requests to article pages — no API cost, ~15 requests

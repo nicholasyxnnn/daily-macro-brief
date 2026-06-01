@@ -104,7 +104,7 @@ daily-macro-brief/
 ├── .github/workflows/daily_brief.yml   # workflow_dispatch — triggered by cron-job.org at 6am HKT
 ├── src/
 │   ├── market_data.py                  # Module 1 — yfinance + FRED
-│   ├── calendar_scraper.py             # Module 3 — ForexFactory → TradingEconomics fallback
+│   ├── calendar_scraper.py             # Module 3 — Finnhub → ForexFactory → TradingEconomics
 │   ├── content_scraper.py              # Module 5 — three-layer content sourcing
 │   ├── scorer.py                       # Relevance ranking (pure Python, zero token cost)
 │   ├── synthesizer.py                  # Claude API — Haiku prefilter + Sonnet synthesis
